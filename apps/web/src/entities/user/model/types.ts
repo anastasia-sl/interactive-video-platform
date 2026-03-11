@@ -1,0 +1,1 @@
+export type { AuthUserDto as User } from '@interactive-video-platform/shared'

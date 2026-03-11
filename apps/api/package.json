@@ -1,22 +1,30 @@
 {
   "name": "api",
   "version": "1.0.0",
-  "main": "index.js",
-  "type": "module",
+  "private": true,
+  "main": "dist/app/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch src/app/main.ts",
-    "build": "tsc"
+    "dev": "ts-node-dev --respawn --transpile-only src/app/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/app/main.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "dependencies": {
+    "@interactive-video-platform/shared": "1.0.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.18.1",
+    "zod": "^4.1.5"
+  },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.3.2",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.3.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.2"
   }
 }
