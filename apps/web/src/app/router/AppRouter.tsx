@@ -3,6 +3,8 @@ import { HomePage } from '../../pages/HomePage'
 import { RegisterPage } from '../../pages/RegisterPage'
 import { LoginPage } from '../../pages/LoginPage'
 import { MePage } from '../../pages/MePage'
+import { CoursesPage } from '../../pages/CoursesPage'
+import { CoursePage } from '../../pages/CoursePage'
 import { RequireAuth } from '../../features/auth-guard/RequireAuth'
 
 export const AppRouter = () => {
@@ -12,6 +14,8 @@ export const AppRouter = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path='/courses' element={<CoursesPage />} />
+        <Route path='/courses/:id' element={<CoursePage />} />
         <Route element={<RequireAuth />}>
           <Route path="/me" element={<MePage />} />
         </Route>

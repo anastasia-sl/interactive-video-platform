@@ -1,4 +1,5 @@
 import { authStorage } from '../shared/lib/auth-storage'
+import { Link } from 'react-router-dom'
 import { useMe } from '../features/auth/hooks/useMe'
 
 export const MePage = () => {
@@ -18,6 +19,15 @@ export const MePage = () => {
 
   return (
     <div>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
+        <Link to='/courses'>
+          <button type='button'>Перейти до курсів</button>
+        </Link>
+        <Link to='/'>
+          <button type='button'>На головну</button>
+        </Link>
+      </div>
+
       <h2>Мій профіль</h2>
       <p>ID: {data.user.id}</p>
       <p>ПІБ: {data.user.fullName}</p>

@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import { env } from '../config/env'
 import { authRouter } from '../modules/auth/auth.routes'
+import { coursesRouter } from '../modules/courses/course.routes'
 import { errorMiddleware } from '../middlewares/error.middleware'
 
 export const createApp = () => {
@@ -28,6 +29,7 @@ export const createApp = () => {
   })
 
   app.use('/api/auth', authRouter)
+  app.use('/api/courses', coursesRouter)
 
   app.use(errorMiddleware)
 
