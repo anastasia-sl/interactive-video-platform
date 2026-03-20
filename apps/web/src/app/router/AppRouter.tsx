@@ -5,6 +5,7 @@ import { LoginPage } from '../../pages/LoginPage'
 import { MePage } from '../../pages/MePage'
 import { CoursesPage } from '../../pages/CoursesPage/CoursesPage.tsx'
 import { CoursePage } from '../../pages/CoursePage/CoursePage.tsx'
+import { MyCoursesPage } from '../../pages/MyCoursesPage/MyCoursesPage'
 import { RequireAuth } from '../../features/auth-guard/RequireAuth'
 
 export const AppRouter = () => {
@@ -18,6 +19,7 @@ export const AppRouter = () => {
         <Route path='/courses/:id' element={<CoursePage />} />
         <Route element={<RequireAuth />}>
           <Route path="/me" element={<MePage />} />
+          <Route path='/my-courses' element={<MyCoursesPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

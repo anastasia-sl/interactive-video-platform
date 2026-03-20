@@ -59,3 +59,19 @@
   font-size: 14px;
   font-weight: 600;
 }
+
+.lesson-editor__group {
+  display: grid;
+  gap: 8px;
+}
+
+.lesson-editor__field--error {
+  border-color: #dc3545;
+  background: #fff7f8;
+}
+
+.lesson-editor__error {
+  margin: 0;
+  font-size: 13px;
+  color: #dc3545;
+}

@@ -1,4 +1,4 @@
-import { LessonEditor, type EditableLesson } from './../LessonEditor/LessonEditor'
+import {LessonEditor, type EditableLesson} from './../LessonEditor/LessonEditor'
 import './ModuleEditor.scss'
 
 export type EditableModule = {
@@ -8,9 +8,24 @@ export type EditableModule = {
   lessons: EditableLesson[]
 }
 
+type LessonErrors = {
+  title?: string
+  order?: string
+  videoUrl?: string
+  durationSeconds?: string
+  content?: string
+}
+
+type ModuleErrors = {
+  title?: string
+  order?: string
+  lessons?: LessonErrors[]
+}
+
 type Props = {
   module: EditableModule
   index: number
+  errors?: ModuleErrors
   onChange: (nextModule: EditableModule) => void
   onRemove: () => void
 }
@@ -28,7 +43,7 @@ const createEmptyLesson = (): EditableLesson => {
   }
 }
 
-export const ModuleEditor = ({ module, index, onChange, onRemove }: Props) => {
+export const ModuleEditor = ({module, index, errors, onChange, onRemove}: Props) => {
   const updateLesson = (lessonIndex: number, nextLesson: EditableLesson) => {
     const nextLessons = [...module.lessons]
     nextLessons[lessonIndex] = nextLesson
@@ -62,31 +77,37 @@ export const ModuleEditor = ({ module, index, onChange, onRemove }: Props) => {
       </div>
 
       <div className='module-editor__grid'>
-        <input
-          className='module-editor__field'
-          value={module.title}
-          onChange={(event) => onChange({ ...module, title: event.target.value })}
-          placeholder='Назва модуля'
-        />
+        <div className='module-editor__group'>
+          <input
+            className={`module-editor__field ${errors?.title ? 'module-editor__field--error' : ''}`}
+            value={module.title}
+            onChange={(event) => onChange({...module, title: event.target.value})}
+            placeholder='Назва модуля'
+          />
+          {errors?.title ? <p className='module-editor__error'>{errors.title}</p> : null}
+        </div>
 
-        <input
-          className='module-editor__field'
-          type='number'
-          value={module.order}
-          onChange={(event) =>
-            onChange({
-              ...module,
-              order: Number(event.target.value)
-            })
-          }
-          placeholder='Порядок'
-        />
+        <div className='module-editor__group'>
+          <input
+            className={`module-editor__field ${errors?.order ? 'module-editor__field--error' : ''}`}
+            type='number'
+            value={module.order}
+            onChange={(event) =>
+              onChange({
+                ...module,
+                order: Number(event.target.value)
+              })
+            }
+            placeholder='Порядок'
+          />
+          {errors?.order ? <p className='module-editor__error'>{errors.order}</p> : null}
+        </div>
       </div>
 
       <textarea
         className='module-editor__textarea'
         value={module.description}
-        onChange={(event) => onChange({ ...module, description: event.target.value })}
+        onChange={(event) => onChange({...module, description: event.target.value})}
         placeholder='Опис модуля'
         rows={3}
       />
@@ -97,6 +118,7 @@ export const ModuleEditor = ({ module, index, onChange, onRemove }: Props) => {
             key={`${index}-${lessonIndex}`}
             lesson={lesson}
             index={lessonIndex}
+            errors={errors?.lessons?.[lessonIndex]}
             onChange={(nextLesson) => updateLesson(lessonIndex, nextLesson)}
             onRemove={() => removeLesson(lessonIndex)}
           />

@@ -12,14 +12,23 @@ export type EditableLesson = {
   isPreview: boolean
 }
 
+type LessonErrors = {
+  title?: string
+  order?: string
+  videoUrl?: string
+  durationSeconds?: string
+  content?: string
+}
+
 type Props = {
   lesson: EditableLesson
   index: number
+  errors?: LessonErrors
   onChange: (nextLesson: EditableLesson) => void
   onRemove: () => void
 }
 
-export const LessonEditor = ({ lesson, index, onChange, onRemove }: Props) => {
+export const LessonEditor = ({ lesson, index, errors, onChange, onRemove }: Props) => {
   return (
     <div className='lesson-editor'>
       <div className='lesson-editor__header'>
@@ -30,53 +39,69 @@ export const LessonEditor = ({ lesson, index, onChange, onRemove }: Props) => {
       </div>
 
       <div className='lesson-editor__grid'>
-        <input
-          className='lesson-editor__field'
+        <div className='lesson-editor__group'>
+          <input
+          className={`lesson-editor__field ${errors?.title ? 'lesson-editor__field--error' : ''}`}
           value={lesson.title}
           onChange={(event) => onChange({ ...lesson, title: event.target.value })}
           placeholder='Назва уроку'
-        />
+          />
+          {errors?.title ? <p className='lesson-editor__error'>{errors.title}</p> : null}
+        </div>
 
-        <input
-          className='lesson-editor__field'
-          type='number'
-          value={lesson.order}
-          onChange={(event) =>
-            onChange({
-              ...lesson,
-              order: Number(event.target.value)
-            })
-          }
-          placeholder='Порядок'
-        />
+        <div className='lesson-editor__group'>
+          <input
+            className={`lesson-editor__field ${errors?.order ? 'lesson-editor__field--error' : ''}`}
+            type='number'
+            value={lesson.order}
+            onChange={(event) =>
+              onChange({
+                ...lesson,
+                order: Number(event.target.value)
+              })
+            }
+            placeholder='Порядок'
+          />
+          {errors?.order ? <p className='lesson-editor__error'>{errors.order}</p> : null}
+        </div>
 
-        <select
-          className='lesson-editor__field'
-          value={lesson.type}
-          onChange={(event) =>
-            onChange({
-              ...lesson,
-              type: event.target.value as LessonType
-            })
-          }
-        >
-          <option value='video'>video</option>
-          <option value='text'>text</option>
-        </select>
+        <div className='lesson-editor__group'>
+          <select
+            className='lesson-editor__field'
+            value={lesson.type}
+            onChange={(event) =>
+              onChange({
+                ...lesson,
+                type: event.target.value as LessonType
+              })
+            }
+          >
+            <option value='video'>video</option>
+            <option value='text'>text</option>
+          </select>
+        </div>
 
-        <input
-          className='lesson-editor__field'
-          value={lesson.videoUrl}
-          onChange={(event) => onChange({ ...lesson, videoUrl: event.target.value })}
-          placeholder='Посилання на відео'
-        />
+        <div className='lesson-editor__group'>
+          <input
+            className={`lesson-editor__field ${errors?.videoUrl ? 'lesson-editor__field--error' : ''}`}
+            value={lesson.videoUrl}
+            onChange={(event) => onChange({ ...lesson, videoUrl: event.target.value })}
+            placeholder='Посилання на відео'
+          />
+          {errors?.videoUrl ? <p className='lesson-editor__error'>{errors.videoUrl}</p> : null}
+        </div>
 
-        <input
-          className='lesson-editor__field'
-          value={lesson.durationSeconds}
-          onChange={(event) => onChange({ ...lesson, durationSeconds: event.target.value })}
-          placeholder='Тривалість у секундах'
-        />
+        <div className='lesson-editor__group'>
+          <input
+            className={`lesson-editor__field ${errors?.durationSeconds ? 'lesson-editor__field--error' : ''}`}
+            value={lesson.durationSeconds}
+            onChange={(event) => onChange({ ...lesson, durationSeconds: event.target.value })}
+            placeholder='Тривалість у секундах'
+          />
+            {errors?.durationSeconds ? (
+                <p className='lesson-editor__error'>{errors.durationSeconds}</p>
+            ) : null}
+        </div>
 
         <label className='lesson-editor__checkbox'>
           <input
@@ -88,21 +113,26 @@ export const LessonEditor = ({ lesson, index, onChange, onRemove }: Props) => {
         </label>
       </div>
 
-      <textarea
-        className='lesson-editor__textarea'
-        value={lesson.description}
-        onChange={(event) => onChange({ ...lesson, description: event.target.value })}
-        placeholder='Опис уроку'
-        rows={3}
-      />
+      <div className='lesson-editor__group'>
+        <textarea
+          className='lesson-editor__textarea'
+          value={lesson.description}
+          onChange={(event) => onChange({ ...lesson, description: event.target.value })}
+          placeholder='Опис уроку'
+          rows={3}
+        />
+      </div>
 
-      <textarea
-        className='lesson-editor__textarea'
-        value={lesson.content}
-        onChange={(event) => onChange({ ...lesson, content: event.target.value })}
-        placeholder='Текстовий контент уроку'
-        rows={4}
-      />
+      <div className='lesson-editor__group'>
+        <textarea
+          className={`lesson-editor__textarea ${errors?.content ? 'lesson-editor__field--error' : ''}`}
+          value={lesson.content}
+          onChange={(event) => onChange({ ...lesson, content: event.target.value })}
+          placeholder='Текстовий контент уроку'
+          rows={4}
+        />
+        {errors?.content ? <p className='lesson-editor__error'>{errors.content}</p> : null}
+      </div>
     </div>
   )
 }

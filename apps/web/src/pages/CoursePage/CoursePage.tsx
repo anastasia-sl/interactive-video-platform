@@ -8,6 +8,22 @@ import { CourseForm } from '../../features/courses/ui/CourseForm/CourseForm.tsx'
 import { ModuleEditor, type EditableModule } from '../../features/courses/ui/ModuleEditor/ModuleEditor.tsx'
 import './CoursePage.scss'
 
+type ViewMode = 'view' | 'edit-course' | 'edit-structure'
+
+type LessonValidationErrors = {
+  title?: string
+  order?: string
+  videoUrl?: string
+  durationSeconds?: string
+  content?: string
+}
+
+type ModuleValidationErrors = {
+  title?: string
+  order?: string
+  lessons?: LessonValidationErrors[]
+}
+
 const createEmptyModule = (): EditableModule => {
   return {
     title: '',
@@ -25,6 +41,8 @@ export const CoursePage = () => {
   const { data, isLoading, isError, error } = useCourse(id)
   const updateCourseMutation = useUpdateCourse(id)
   const deleteCourseMutation = useDeleteCourse()
+
+  const [mode, setMode] = useState<ViewMode>('view')
 
   const course = data?.course
   const role = meData?.user.role
@@ -57,6 +75,7 @@ export const CoursePage = () => {
   }, [course])
 
   const [modules, setModules] = useState<EditableModule[]>([])
+  const [moduleErrors, setModuleErrors] = useState<ModuleValidationErrors[]>([])
 
   useEffect(() => {
     setModules(initialModules)
@@ -64,17 +83,91 @@ export const CoursePage = () => {
 
   const addModule = () => {
     setModules((prev) => [...prev, createEmptyModule()])
+    setModuleErrors((prev) => [...prev, {}])
   }
 
   const updateModule = (moduleIndex: number, nextModule: EditableModule) => {
     setModules((prev) => prev.map((item, index) => (index === moduleIndex ? nextModule : item)))
+    setModuleErrors((prev) => prev.map((item, index) => (index === moduleIndex ? {} : item)))
   }
 
   const removeModule = (moduleIndex: number) => {
     setModules((prev) => prev.filter((_, index) => index !== moduleIndex))
+    setModuleErrors((prev) => prev.filter((_, index) => index !== moduleIndex))
+  }
+
+  const validateStructure = () => {
+    const nextErrors: ModuleValidationErrors[] = modules.map((module) => {
+      const moduleError: ModuleValidationErrors = {}
+
+      if (!module.title.trim()) {
+        moduleError.title = 'Введіть назву модуля'
+      }
+
+      if (Number.isNaN(module.order) || module.order < 0) {
+        moduleError.order = 'Порядок модуля повинен бути числом 0 або більше'
+      }
+
+      moduleError.lessons = module.lessons.map((lesson) => {
+        const lessonError: LessonValidationErrors = {}
+
+        if (!lesson.title.trim()) {
+          lessonError.title = 'Введіть назву уроку'
+        }
+
+        if (Number.isNaN(lesson.order) || lesson.order < 0) {
+          lessonError.order = 'Порядок уроку повинен бути числом 0 або більше'
+        }
+
+        if (lesson.type === 'video' && lesson.videoUrl.trim()) {
+          try {
+            new URL(lesson.videoUrl.trim())
+          } catch {
+            lessonError.videoUrl = 'Введіть коректне посилання на відео'
+          }
+        }
+
+        if (lesson.durationSeconds.trim()) {
+          const value = Number(lesson.durationSeconds)
+          if (Number.isNaN(value) || value < 0) {
+            lessonError.durationSeconds = 'Тривалість повинна бути числом 0 або більше'
+          }
+        }
+
+        if (lesson.type === 'text' && !lesson.content.trim()) {
+          lessonError.content = 'Для текстового уроку заповніть контент'
+        }
+
+        return lessonError
+      })
+
+      return moduleError
+    })
+
+    setModuleErrors(nextErrors)
+
+    const hasErrors = nextErrors.some((moduleError) => {
+      const hasModuleErrors = Boolean(moduleError.title || moduleError.order)
+      const hasLessonErrors = moduleError.lessons?.some(
+        (lessonError) =>
+          lessonError.title ||
+          lessonError.order ||
+          lessonError.videoUrl ||
+          lessonError.durationSeconds ||
+          lessonError.content
+      )
+
+      return hasModuleErrors || hasLessonErrors
+    })
+
+    return !hasErrors
   }
 
   const saveStructure = () => {
+    if (!validateStructure()) {
+      return
+    }
+
     updateCourseMutation.mutate({
       modules: modules.map((module, moduleIndex) => ({
         title: module.title.trim(),
@@ -91,7 +184,13 @@ export const CoursePage = () => {
           isPreview: lesson.isPreview
         }))
       }))
-    })
+    },
+      {
+        onSuccess: () => {
+          setMode('view')
+        }
+      }
+    )
   }
 
   return (
@@ -100,6 +199,7 @@ export const CoursePage = () => {
       <nav className='course-page__nav'>
         <Link to='/'>Головна</Link>
         <Link to='/courses'>Курси</Link>
+        {role === 'teacher' || role === 'admin' ? <Link to='/my-courses'>Мої курси</Link> : null}
         <Link to='/me'>Мій профіль</Link>
       </nav>
 
@@ -109,16 +209,39 @@ export const CoursePage = () => {
       {course ? (
         <>
         <section className='course-page__hero'>
+          <div className='course-page__hero-top'>
+            <div>
           <h1 className='course-page__title'>{course.title}</h1>
           <p className='course-page__text'>{course.shortDescription}</p>
           {course.description ? <p className='course-page__text'>{course.description}</p> : null}
           <p className='course-page__meta'>Статус: {course.status}</p>
           <p className='course-page__meta'>Slug: {course.slug}</p>
           <p className='course-page__meta'>Теги: {course.tags.length ? course.tags.join(', ') : 'немає'}</p>
+            </div>
+
+            {canEdit ? (
+              <div className='course-page__toolbar'>
+                <button
+                  className='course-page__toolbar-button'
+                  type='button'
+                  onClick={() => setMode('edit-course')}
+                >
+                  Редагувати курс
+                </button>
+                <button
+                  className='course-page__toolbar-button'
+                  type='button'
+                  onClick={() => setMode('edit-structure')}
+                >
+                  Редагувати структуру
+                </button>
+              </div>
+            ) : null}
+          </div>
         </section>
 
           <section className='course-page__section'>
-            <h2 className='course-page__subtitle'>Структура курсу</h2>
+            <h2 className='course-page__subtitle'>Як курс бачить студент</h2>
 
             {course.modules.length ? (
               <div className='course-page__modules-preview'>
@@ -152,30 +275,63 @@ export const CoursePage = () => {
             )}
           </section>
 
-          {canEdit ? (
-            <>
+          {canEdit && mode === 'edit-course' ? (
             <section className='course-page__section'>
-              <h2 className='course-page__subtitle'>Редагування курсу</h2>
+              <div className='course-page__section-header'>
+                <h2 className='course-page__subtitle'>Редагування курсу</h2>
+                <button
+                  className='course-page__secondary-button'
+                  type='button'
+                  onClick={() => setMode('view')}
+                >
+                  Скасувати
+                </button>
+              </div>
+
               <CourseForm
                 mode='edit'
                 initialValues={course}
                 submitLabel='Оновити курс'
                 isPending={updateCourseMutation.isPending}
-                onSubmit={(payload) => updateCourseMutation.mutate(payload)}
+                onSubmit={(payload) =>
+                  updateCourseMutation.mutate(payload, {
+                    onSuccess: () => {
+                      setMode('view')
+                    }
+                  })
+                }
               />
+
               {updateCourseMutation.isError ? (
-                <p className='course-page__message course-page__message--error'>{updateCourseMutation.error.message}</p>
+                <p className='course-page__message course-page__message--error'>
+                  {updateCourseMutation.error.message}
+                </p>
               ) : null}
+
               {updateCourseMutation.isSuccess ? (
-                <p className='course-page__message course-page__message--success'>Курс успішно оновлено</p>
+                <p className='course-page__message course-page__message--success'>
+                  Курс успішно оновлено
+                </p>
               ) : null}
             </section>
+          ) : null}
+
+      {canEdit && mode ==='edit-structure' ? (
             <section className='course-page__section'>
               <div className='course-page__section-header'>
                 <h2 className='course-page__subtitle'>Редактор структури курсу</h2>
-                <button className='course-page__add-button' type='button' onClick={addModule}>
-                  Додати модуль
-                </button>
+                <div className='course-page__section-actions'>
+                  <button className='course-page__add-button' type='button' onClick={addModule}>
+                    Додати модуль
+                  </button>
+                  <button
+                    className='course-page__secondary-button'
+                    type='button'
+                    onClick={() => setMode('view')}
+                  >
+                    Скасувати
+                  </button>
+                </div>
               </div>
 
               <div className='course-page__modules-editor'>
@@ -184,6 +340,7 @@ export const CoursePage = () => {
                     key={index}
                     module={module}
                     index={index}
+                    errors={moduleErrors[index]}
                     onChange={(nextModule) => updateModule(index, nextModule)}
                     onRemove={() => removeModule(index)}
                   />
@@ -206,13 +363,9 @@ export const CoursePage = () => {
                   {updateCourseMutation.error.message}
                 </p>
               ) : null}
-
-              {updateCourseMutation.isSuccess ? (
-                <p className='course-page__message course-page__message--success'>
-                  Зміни успішно збережено
-                </p>
-              ) : null}
             </section>
+      ) : null}
+      {canEdit ? (
             <section className='course-page__section'>
             <h2 className='course-page__subtitle'>Керування курсом</h2>
             <button
@@ -236,11 +389,10 @@ export const CoursePage = () => {
                 </p>
               ) : null}
             </section>
-            </>
-          ) : null}
-        </>
       ) : null}
-      </div>
-    </main>
-  )
+    </>
+  ) : null}
+</div>
+</main>
+)
 }

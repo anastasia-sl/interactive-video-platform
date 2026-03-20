@@ -1,36 +1,29 @@
-.courses-page {
+.my-courses-page {
   min-height: 100vh;
   background: #f4f7fb;
   padding: 32px 16px;
 }
 
-.courses-page__container {
+.my-courses-page__container {
   max-width: 1040px;
   margin: 0 auto;
   display: grid;
   gap: 24px;
-
 }
 
-  .courses-page__header {
-    display: grid;
-    gap: 18px;
+.my-courses-page__header {
+  display: grid;
+  gap: 18px;
 }
 
-.courses-page__title {
+.my-courses-page__title {
   margin: 0;
   font-size: 44px;
   line-height: 1.1;
   color: #1f3550;
 }
 
-.courses-page__subtitle {
-  margin: 0 0 12px;
-  font-size: 30px;
-  color: #1f3550;
-}
-
-.courses-page__nav-wrap {
+.my-courses-page__top-row {
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -38,19 +31,19 @@
   align-items: center;
 }
 
-.courses-page__nav {
+.my-courses-page__nav {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
 }
 
-.courses-page__nav a {
+.my-courses-page__nav a {
   color: #4b7bec;
   font-weight: 600;
   text-decoration: none;
 }
 
-.courses-page__filter {
+.my-courses-page__filter {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -58,7 +51,7 @@
   font-weight: 600;
 }
 
-.courses-page__filter select {
+.my-courses-page__filter select {
   border: 1px solid #c9d3df;
   border-radius: 10px;
   padding: 10px 12px;
@@ -66,19 +59,12 @@
   color: #1f3550;
 }
 
-.courses-page__section {
-  border-radius: 20px;
-  background: #ffffff;
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(31, 53, 80, 0.08);
-}
-
-.courses-page__list {
+.my-courses-page__list {
   display: grid;
   gap: 16px;
 }
 
-.courses-page__card {
+.my-courses-page__card {
   border-radius: 18px;
   background: #ffffff;
   padding: 20px;
@@ -87,91 +73,61 @@
   gap: 10px;
 }
 
-.courses-page__card-top {
+.my-courses-page__card-top {
   display: flex;
   justify-content: space-between;
   gap: 16px;
   align-items: flex-start;
 }
 
-.courses-page__card-title {
+.my-courses-page__card-title {
   margin: 0;
   font-size: 24px;
   color: #1f3550;
 }
 
-.courses-page__card-text {
+.my-courses-page__card-text {
   margin: 0;
   color: #4a5d73;
   font-size: 15px;
 }
 
-.courses-page__badges {
+.my-courses-page__badges {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.courses-page__status,
-.courses-page__mine-badge {
+.my-courses-page__status,
+.my-courses-page__mine-badge {
   border-radius: 999px;
   padding: 6px 12px;
   font-size: 13px;
   font-weight: 700;
 }
 
-.courses-page__status {
+.my-courses-page__status {
   background: #eef3ff;
   color: #4b7bec;
 }
 
-.courses-page__mine-badge {
+.my-courses-page__mine-badge {
   background: #e8f7ec;
   color: #198754;
 }
 
-.courses-page__link {
+.my-courses-page__link {
   color: #4b7bec;
   font-weight: 700;
   text-decoration: none;
 }
 
-.courses-page__message {
+.my-courses-page__message {
   margin: 0;
   font-size: 15px;
   color: #4a5d73;
 }
 
-.courses-page__message--error {
+.my-courses-page__message--error {
   color: #dc3545;
-}
-
-.courses-page__message--success {
-  color: #198754;
-}
-
-.courses-page__section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.courses-page__primary-button,
-.courses-page__secondary-button {
-  border: none;
-  border-radius: 12px;
-  padding: 12px 16px;
-  color: #ffffff;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.courses-page__primary-button {
-  background: #4b7bec;
-}
-
-.courses-page__secondary-button {
-  background: #6c757d;
 }

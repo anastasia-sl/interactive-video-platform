@@ -65,3 +65,19 @@
   font-weight: 700;
   cursor: pointer;
 }
+
+.module-editor__group {
+  display: grid;
+  gap: 8px;
+}
+
+.module-editor__field--error {
+  border-color: #dc3545;
+  background: #fff7f8;
+}
+
+.module-editor__error {
+  margin: 0;
+  font-size: 13px;
+  color: #dc3545;
+}
