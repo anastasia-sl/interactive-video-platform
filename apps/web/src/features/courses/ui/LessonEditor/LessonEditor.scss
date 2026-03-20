@@ -1,0 +1,61 @@
+.lesson-editor {
+  border: 1px solid #d7e0ea;
+  border-radius: 14px;
+  padding: 16px;
+  background: #f8fbff;
+  display: grid;
+  gap: 14px;
+}
+
+.lesson-editor__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.lesson-editor__title {
+  margin: 0;
+  font-size: 18px;
+  color: #1f3550;
+}
+
+.lesson-editor__remove {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #dc3545;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lesson-editor__grid {
+  display: grid;
+  gap: 12px;
+}
+
+.lesson-editor__field,
+.lesson-editor__textarea {
+  width: 100%;
+  border: 1px solid #c9d3df;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 15px;
+  color: #1f3550;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.lesson-editor__textarea {
+  resize: vertical;
+}
+
+.lesson-editor__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1f3550;
+  font-size: 14px;
+  font-weight: 600;
+}

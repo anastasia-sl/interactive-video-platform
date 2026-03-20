@@ -3,8 +3,8 @@ import { HomePage } from '../../pages/HomePage'
 import { RegisterPage } from '../../pages/RegisterPage'
 import { LoginPage } from '../../pages/LoginPage'
 import { MePage } from '../../pages/MePage'
-import { CoursesPage } from '../../pages/CoursesPage'
-import { CoursePage } from '../../pages/CoursePage'
+import { CoursesPage } from '../../pages/CoursesPage/CoursesPage.tsx'
+import { CoursePage } from '../../pages/CoursePage/CoursePage.tsx'
 import { RequireAuth } from '../../features/auth-guard/RequireAuth'
 
 export const AppRouter = () => {

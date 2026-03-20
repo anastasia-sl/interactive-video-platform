@@ -1,0 +1,68 @@
+.course-form {
+  display: grid;
+  gap: 16px;
+}
+
+.course-form__group {
+  display: grid;
+  gap: 8px;
+}
+
+.course-form__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f3550;
+}
+
+.course-form__field,
+.course-form__textarea {
+  width: 100%;
+  border: 1px solid #c9d3df;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 15px;
+  color: #1f3550;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.course-form__field:focus,
+.course-form__textarea:focus {
+  outline: none;
+  border-color: #4b7bec;
+  box-shadow: 0 0 0 3px rgba(75, 123, 236, 0.15);
+}
+
+.course-form__field--error {
+  border-color: #dc3545;
+  background: #fff7f8;
+}
+
+.course-form__error {
+  margin: 0;
+  font-size: 13px;
+  color: #dc3545;
+}
+
+.course-form__textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.course-form__submit {
+  border: none;
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #1f3550;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.course-form__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

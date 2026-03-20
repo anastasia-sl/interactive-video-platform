@@ -1,0 +1,67 @@
+.module-editor {
+  border: 1px solid #ccd8e5;
+  border-radius: 18px;
+  padding: 20px;
+  background: #ffffff;
+  display: grid;
+  gap: 16px;
+}
+
+.module-editor__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.module-editor__title {
+  margin: 0;
+  font-size: 22px;
+  color: #1f3550;
+}
+
+.module-editor__remove {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #dc3545;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.module-editor__grid {
+  display: grid;
+  gap: 12px;
+}
+
+.module-editor__field,
+.module-editor__textarea {
+  width: 100%;
+  border: 1px solid #c9d3df;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 15px;
+  color: #1f3550;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.module-editor__textarea {
+  resize: vertical;
+}
+
+.module-editor__lessons {
+  display: grid;
+  gap: 16px;
+}
+
+.module-editor__add {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: #4b7bec;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
