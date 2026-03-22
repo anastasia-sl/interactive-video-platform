@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import { useMe } from '../../features/auth/hooks/useMe.ts'
 import { useCourse } from '../../features/courses/hooks/useCourse.ts'
@@ -28,7 +28,7 @@ const createEmptyModule = (): EditableModule => {
   return {
     title: '',
     description: '',
-    order: 0,
+    order: 1,
     lessons: []
   }
 }
@@ -42,7 +42,9 @@ export const CoursePage = () => {
   const updateCourseMutation = useUpdateCourse(id)
   const deleteCourseMutation = useDeleteCourse()
 
+  const [searchParams] = useSearchParams()
   const [mode, setMode] = useState<ViewMode>('view')
+
 
   const course = data?.course
   const role = meData?.user.role
@@ -51,6 +53,18 @@ export const CoursePage = () => {
   const canEdit =
     !!course &&
     (role === 'admin' || (role === 'teacher' && myUserId === course.authorId))
+
+  useEffect(() => {
+    if (!canEdit) {
+      return
+    }
+
+    const routeMode = searchParams.get('mode')
+
+    if (routeMode === 'edit-course' || routeMode === 'edit-structure') {
+      setMode(routeMode)
+    }
+  }, [canEdit, searchParams, id])
 
   const initialModules = useMemo<EditableModule[]>(() => {
     if (!course) {
@@ -82,7 +96,13 @@ export const CoursePage = () => {
   }, [initialModules])
 
   const addModule = () => {
-    setModules((prev) => [...prev, createEmptyModule()])
+    setModules((prev) => [
+      ...prev,
+      {
+        ...createEmptyModule(),
+        order: prev.length + 1
+      }
+    ])
     setModuleErrors((prev) => [...prev, {}])
   }
 
@@ -104,8 +124,8 @@ export const CoursePage = () => {
         moduleError.title = 'Введіть назву модуля'
       }
 
-      if (Number.isNaN(module.order) || module.order < 0) {
-        moduleError.order = 'Порядок модуля повинен бути числом 0 або більше'
+      if (Number.isNaN(module.order) || module.order < 1) {
+        moduleError.order = 'Порядок модуля повинен бути числом 1 або більше'
       }
 
       moduleError.lessons = module.lessons.map((lesson) => {
@@ -115,8 +135,8 @@ export const CoursePage = () => {
           lessonError.title = 'Введіть назву уроку'
         }
 
-        if (Number.isNaN(lesson.order) || lesson.order < 0) {
-          lessonError.order = 'Порядок уроку повинен бути числом 0 або більше'
+        if (Number.isNaN(lesson.order) || lesson.order < 1) {
+          lessonError.order = 'Порядок уроку повинен бути числом 1 або більше'
         }
 
         if (lesson.type === 'video' && lesson.videoUrl.trim()) {
@@ -172,11 +192,11 @@ export const CoursePage = () => {
       modules: modules.map((module, moduleIndex) => ({
         title: module.title.trim(),
         description: module.description.trim() || undefined,
-        order: Number.isNaN(module.order) ? moduleIndex : module.order,
+        order: Number.isNaN(module.order) ? moduleIndex + 1 : module.order,
         lessons: module.lessons.map((lesson, lessonIndex) => ({
           title: lesson.title.trim(),
           description: lesson.description.trim() || undefined,
-          order: Number.isNaN(lesson.order) ? lessonIndex : lesson.order,
+          order: Number.isNaN(lesson.order) ? lessonIndex + 1 : lesson.order,
           type: lesson.type,
           videoUrl: lesson.videoUrl.trim() || undefined,
           content: lesson.content.trim() || undefined,
@@ -200,6 +220,7 @@ export const CoursePage = () => {
         <Link to='/'>Головна</Link>
         <Link to='/courses'>Курси</Link>
         {role === 'teacher' || role === 'admin' ? <Link to='/my-courses'>Мої курси</Link> : null}
+        {role === 'teacher' || role === 'admin' ? <Link to='/courses/create'>Створити курс</Link> : null}
         <Link to='/me'>Мій профіль</Link>
       </nav>
 
@@ -213,6 +234,13 @@ export const CoursePage = () => {
             <div>
           <h1 className='course-page__title'>{course.title}</h1>
           <p className='course-page__text'>{course.shortDescription}</p>
+              {course.thumbnailUrl ? (
+                <img
+                  className='course-page__thumbnail'
+                  src={course.thumbnailUrl}
+                  alt={course.title}
+                />
+              ) : null}
           {course.description ? <p className='course-page__text'>{course.description}</p> : null}
           <p className='course-page__meta'>Статус: {course.status}</p>
           <p className='course-page__meta'>Slug: {course.slug}</p>
@@ -241,7 +269,7 @@ export const CoursePage = () => {
         </section>
 
           <section className='course-page__section'>
-            <h2 className='course-page__subtitle'>Як курс бачить студент</h2>
+            {canEdit ? <h2 className='course-page__subtitle'>Попередній перегляд курсу</h2> : null}
 
             {course.modules.length ? (
               <div className='course-page__modules-preview'>
@@ -251,7 +279,7 @@ export const CoursePage = () => {
                     className='course-page__preview-card'
                   >
                     <h3 className='course-page__preview-title'>
-                      Модуль {module.order + 1}: {module.title}
+                      Модуль {module.order}: {module.title}
                     </h3>
                     {module.description ? <p className='course-page__text'>{module.description}</p> : null}
 
@@ -261,6 +289,19 @@ export const CoursePage = () => {
                           <li key={lesson.id}>
                             <strong>{lesson.title}</strong> | {lesson.type} | порядок: {lesson.order}
                             {lesson.description ? <div>{lesson.description}</div> : null}
+                            {lesson.type === 'video' && lesson.videoUrl ? (
+                              <a
+                                className='course-page__lesson-link'
+                                href={lesson.videoUrl}
+                                target='_blank'
+                                rel='noreferrer'
+                              >
+                                Переглянути відео
+                              </a>
+                            ) : null}
+                            {lesson.type === 'text' && lesson.content ? (
+                              <div className='course-page__lesson-content'>{lesson.content}</div>
+                            ) : null}
                           </li>
                         ))}
                       </ol>

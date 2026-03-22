@@ -34,7 +34,7 @@ const createEmptyLesson = (): EditableLesson => {
   return {
     title: '',
     description: '',
-    order: 0,
+    order: 1,
     type: 'video',
     videoUrl: '',
     content: '',
@@ -63,14 +63,20 @@ export const ModuleEditor = ({module, index, errors, onChange, onRemove}: Props)
   const addLesson = () => {
     onChange({
       ...module,
-      lessons: [...module.lessons, createEmptyLesson()]
+      lessons: [
+        ...module.lessons,
+        {
+          ...createEmptyLesson(),
+          order: module.lessons.length + 1
+        }
+      ]
     })
   }
 
   return (
     <div className='module-editor'>
       <div className='module-editor__header'>
-        <h3 className='module-editor__title'>Модуль {index + 1}</h3>
+        <h3 className='module-editor__title'>Модуль {module.order}</h3>
         <button className='module-editor__remove' type='button' onClick={onRemove}>
           Видалити модуль
         </button>

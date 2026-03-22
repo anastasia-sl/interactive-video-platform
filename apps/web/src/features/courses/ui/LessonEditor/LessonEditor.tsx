@@ -32,7 +32,7 @@ export const LessonEditor = ({ lesson, index, errors, onChange, onRemove }: Prop
   return (
     <div className='lesson-editor'>
       <div className='lesson-editor__header'>
-        <h4 className='lesson-editor__title'>Урок {index + 1}</h4>
+        <h4 className='lesson-editor__title'>Урок {lesson.order}</h4>
         <button className='lesson-editor__remove' type='button' onClick={onRemove}>
           Видалити урок
         </button>

@@ -2,8 +2,6 @@ import { Link } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { useMe } from '../../features/auth/hooks/useMe.ts'
 import { useCourses } from '../../features/courses/hooks/useCourses.ts'
-import { useCreateCourse } from '../../features/courses/hooks/useCreateCourse.ts'
-import { CourseForm } from '../../features/courses/ui/CourseForm/CourseForm.tsx'
 import './CoursesPage.scss'
 
 type StatusFilter = 'all' | 'published' | 'draft'
@@ -11,10 +9,8 @@ type StatusFilter = 'all' | 'published' | 'draft'
 export const CoursesPage = () => {
   const { data: meData } = useMe()
   const { data, isLoading, isError, error } = useCourses()
-  const createCourseMutation = useCreateCourse()
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
 
   const role = meData?.user.role
   const myUserId = meData?.user.id
@@ -40,6 +36,7 @@ export const CoursesPage = () => {
         <nav className='courses-page__nav'>
           <Link to='/'>Головна</Link>
           {canCreate ? <Link to='/my-courses'>Мої курси</Link> : null}
+          {canCreate ? <Link to="/courses/create">Створити курс</Link> : null}
           <Link to='/me'>Мій профіль</Link>
         </nav>
             <div className='courses-page__filter'>
@@ -56,61 +53,6 @@ export const CoursesPage = () => {
             </div>
           </div>
         </div>
-
-        {canCreate ? (
-          <section className='courses-page__section'>
-            <div className='courses-page__section-header'>
-              <h2 className='courses-page__subtitle'>Створення курсу</h2>
-
-              {!isCreateFormOpen ? (
-                <button
-                  className='courses-page__primary-button'
-                  type='button'
-                  onClick={() => setIsCreateFormOpen(true)}
-                >
-                  Створити курс
-                </button>
-              ) : (
-                <button
-                  className='courses-page__secondary-button'
-                  type='button'
-                  onClick={() => setIsCreateFormOpen(false)}
-                >
-                  Скасувати
-                </button>
-              )}
-            </div>
-
-            {isCreateFormOpen ? (
-              <>
-                <CourseForm
-                  mode='create'
-                  submitLabel='Створити курс'
-                  isPending={createCourseMutation.isPending}
-                  onSubmit={(payload) =>
-                    createCourseMutation.mutate(payload, {
-                      onSuccess: () => {
-                        setIsCreateFormOpen(false)
-                      }
-                    })
-                  }
-                />
-
-                {createCourseMutation.isError ? (
-                  <p className='courses-page__message courses-page__message--error'>
-                    {createCourseMutation.error.message}
-                  </p>
-                ) : null}
-
-                {createCourseMutation.isSuccess ? (
-                  <p className='courses-page__message courses-page__message--success'>
-                    Курс успішно створено
-                  </p>
-                ) : null}
-              </>
-            ) : null}
-          </section>
-        ) : null}
 
       {isLoading ? <p className='courses-page__message'>Завантаження курсів...</p> : null}
       {isError ? <p className='courses-page__message courses-page__message--error'>{error.message}</p> : null}

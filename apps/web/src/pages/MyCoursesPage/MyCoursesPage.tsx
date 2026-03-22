@@ -35,6 +35,7 @@ export const MyCoursesPage = () => {
             <nav className='my-courses-page__nav'>
               <Link to='/'>Головна</Link>
               <Link to='/courses'>Усі курси</Link>
+              {canManage ? <Link to='/courses/create'>Створити курс</Link> : null}
               <Link to='/me'>Мій профіль</Link>
             </nav>
 
