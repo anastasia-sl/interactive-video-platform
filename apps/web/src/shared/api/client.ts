@@ -10,7 +10,7 @@ export const apiClient = async <T>(
   const response = await fetch(`${env.apiBaseUrl}${path}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers ?? {})
     }

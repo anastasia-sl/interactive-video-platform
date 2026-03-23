@@ -1,6 +1,7 @@
 import type { LessonType } from '../../../../shared/types/course'
 import { VideoUrlInput } from '../../../../shared/ui/VideoUrlInput/VideoUrlInput'
 import '../../../../shared/ui/VideoUrlInput/VideoUrlInput.scss'
+import { useUploadVideo } from '../../hooks/useUploadVideo'
 import './LessonEditor.scss'
 
 export type EditableLesson = {
@@ -31,6 +32,18 @@ type Props = {
 }
 
 export const LessonEditor = ({ lesson, errors, onChange, onRemove }: Props) => {
+  const uploadMutation = useUploadVideo()
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    uploadMutation.mutate(file, {
+      onSuccess: (url) => {
+        onChange({ ...lesson, videoUrl: url })
+      }
+    })
+  }
   return (
     <div className='lesson-editor'>
       <div className='lesson-editor__header'>
@@ -90,6 +103,27 @@ export const LessonEditor = ({ lesson, errors, onChange, onRemove }: Props) => {
             onChange={(value) => onChange({ ...lesson, videoUrl: value })}
           />
         </div>
+        {lesson.type === 'video' ? (
+          <div className='lesson-editor__group'>
+            <p className='lesson-editor__label'>або завантажте файл:</p>
+            <input
+              className='lesson-editor__field'
+              type='file'
+              accept='video/mp4,video/webm,video/ogg'
+              onChange={handleFileChange}
+              disabled={uploadMutation.isPending}
+            />
+            {uploadMutation.isPending ? (
+              <p className='lesson-editor__hint'>Завантаження відео...</p>
+            ) : null}
+            {uploadMutation.isError ? (
+              <p className='lesson-editor__error'>{uploadMutation.error.message}</p>
+            ) : null}
+            {uploadMutation.isSuccess ? (
+              <p className='lesson-editor__hint lesson-editor__hint--ok'>Відео завантажено ✓</p>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className='lesson-editor__group'>
           <input
