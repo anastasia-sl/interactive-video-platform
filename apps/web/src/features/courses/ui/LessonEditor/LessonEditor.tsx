@@ -1,4 +1,6 @@
 import type { LessonType } from '../../../../shared/types/course'
+import { VideoUrlInput } from '../../../../shared/ui/VideoUrlInput/VideoUrlInput'
+import '../../../../shared/ui/VideoUrlInput/VideoUrlInput.scss'
 import './LessonEditor.scss'
 
 export type EditableLesson = {
@@ -28,7 +30,7 @@ type Props = {
   onRemove: () => void
 }
 
-export const LessonEditor = ({ lesson, index, errors, onChange, onRemove }: Props) => {
+export const LessonEditor = ({ lesson, errors, onChange, onRemove }: Props) => {
   return (
     <div className='lesson-editor'>
       <div className='lesson-editor__header'>
@@ -82,13 +84,11 @@ export const LessonEditor = ({ lesson, index, errors, onChange, onRemove }: Prop
         </div>
 
         <div className='lesson-editor__group'>
-          <input
-            className={`lesson-editor__field ${errors?.videoUrl ? 'lesson-editor__field--error' : ''}`}
+          <VideoUrlInput
             value={lesson.videoUrl}
-            onChange={(event) => onChange({ ...lesson, videoUrl: event.target.value })}
-            placeholder='Посилання на відео'
+            error={errors?.videoUrl}
+            onChange={(value) => onChange({ ...lesson, videoUrl: value })}
           />
-          {errors?.videoUrl ? <p className='lesson-editor__error'>{errors.videoUrl}</p> : null}
         </div>
 
         <div className='lesson-editor__group'>

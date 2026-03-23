@@ -1,0 +1,14 @@
+.video-url-input {
+  &__hint {
+    margin-top: 4px;
+    font-size: 12px;
+
+    &--ok {
+      color: #27ae60;
+    }
+
+    &--error {
+      color: #c0392b;
+    }
+  }
+}

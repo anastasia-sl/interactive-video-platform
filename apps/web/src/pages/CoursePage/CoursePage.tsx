@@ -6,6 +6,8 @@ import { useDeleteCourse } from '../../features/courses/hooks/useDeleteCourse.ts
 import { useUpdateCourse } from '../../features/courses/hooks/useUpdateCourse.ts'
 import { CourseForm } from '../../features/courses/ui/CourseForm/CourseForm.tsx'
 import { ModuleEditor, type EditableModule } from '../../features/courses/ui/ModuleEditor/ModuleEditor.tsx'
+import { VideoPlayer } from '../../shared/ui/VideoPlayer/VideoPlayer'
+import { detectVideoSource } from '../../shared/ui/VideoPlayer/detectVideoSource'
 import './CoursePage.scss'
 
 type ViewMode = 'view' | 'edit-course' | 'edit-structure'
@@ -140,10 +142,9 @@ export const CoursePage = () => {
         }
 
         if (lesson.type === 'video' && lesson.videoUrl.trim()) {
-          try {
-            new URL(lesson.videoUrl.trim())
-          } catch {
-            lessonError.videoUrl = 'Введіть коректне посилання на відео'
+          const source = detectVideoSource(lesson.videoUrl.trim())
+          if (source.type === 'unsupported') {
+            lessonError.videoUrl = 'Використовуй YouTube, Vimeo, Loom або пряме .mp4 посилання'
           }
         }
 
@@ -290,14 +291,7 @@ export const CoursePage = () => {
                             <strong>{lesson.title}</strong> | {lesson.type} | порядок: {lesson.order}
                             {lesson.description ? <div>{lesson.description}</div> : null}
                             {lesson.type === 'video' && lesson.videoUrl ? (
-                              <a
-                                className='course-page__lesson-link'
-                                href={lesson.videoUrl}
-                                target='_blank'
-                                rel='noreferrer'
-                              >
-                                Переглянути відео
-                              </a>
+                              <VideoPlayer url={lesson.videoUrl} />
                             ) : null}
                             {lesson.type === 'text' && lesson.content ? (
                               <div className='course-page__lesson-content'>{lesson.content}</div>

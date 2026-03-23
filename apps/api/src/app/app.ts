@@ -10,7 +10,15 @@ export const createApp = () => {
 
   app.use(
     cors({
-      origin: env.CLIENT_URL
+      origin: (origin, callback) => {
+        const allowed = env.CLIENT_URL.split(',').map((url) => url.trim())
+        if (!origin || allowed.includes(origin)) {
+          callback(null, true)
+        } else {
+          callback(new Error(`CORS: origin ${origin} is not allowed`))
+        }
+      },
+      credentials: true
     })
   )
 
