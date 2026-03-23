@@ -1,13 +1,17 @@
-const ACCESS_TOKEN_KEY = 'ivp_access_token'
+import {
+  clearAccessToken,
+  getAccessToken,
+  setAccessToken
+} from '../../features/auth/lib/accessToken'
 
 export const authStorage = {
   getToken(): string | null {
-    return localStorage.getItem(ACCESS_TOKEN_KEY)
+    return getAccessToken()
   },
   setToken(token: string) {
-    localStorage.setItem(ACCESS_TOKEN_KEY, token)
+    setAccessToken(token)
   },
   clearToken() {
-    localStorage.removeItem(ACCESS_TOKEN_KEY)
+    clearAccessToken()
   }
 }

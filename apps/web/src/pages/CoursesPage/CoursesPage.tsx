@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { useMe } from '../../features/auth/hooks/useMe.ts'
 import { useCourses } from '../../features/courses/hooks/useCourses.ts'
 import './CoursesPage.scss'
+import {AppNavigation} from "../../shared/ui/AppNavigation/AppNavigation.tsx";
 
 type StatusFilter = 'all' | 'published' | 'draft'
 
@@ -33,12 +34,12 @@ export const CoursesPage = () => {
         <h1 className='courses-page__title'>Курси</h1>
 
           <div className='courses-page__nav-wrap'>
-        <nav className='courses-page__nav'>
-          <Link to='/'>Головна</Link>
-          {canCreate ? <Link to='/my-courses'>Мої курси</Link> : null}
-          {canCreate ? <Link to="/courses/create">Створити курс</Link> : null}
-          <Link to='/me'>Мій профіль</Link>
-        </nav>
+            <AppNavigation
+              role={role}
+              showMyCourses
+              showCreate
+              className='courses-page__nav'
+            />
             <div className='courses-page__filter'>
               <label htmlFor='course-status-filter'>Фільтр</label>
               <select
