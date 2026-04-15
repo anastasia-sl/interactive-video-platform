@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose'
+import { Schema, model, Types } from 'mongoose'
 import { COURSE_STATUSES, LESSON_TYPES } from '@interactive-video-platform/shared'
 
 const lessonSchema = new Schema(
@@ -23,10 +23,10 @@ const lessonSchema = new Schema(
       required: true,
       default: 'video'
     },
-    videoUrl: {
-      type: String,
-      trim: true
-    },
+      videoAssetId: {
+        type: Schema.Types.ObjectId,
+          ref: 'VideoAsset'
+      },
     content: {
       type: String,
       trim: true
@@ -38,12 +38,35 @@ const lessonSchema = new Schema(
     isPreview: {
       type: Boolean,
       default: false
+    },
+      hasInteractiveQuestions: {
+        type: Boolean,
+          default: false
     }
   },
   {
     timestamps: true
   }
 )
+
+lessonSchema.pre('validate', function (next) {
+    const lesson = this as {
+        type: 'video' | 'text'
+        videoAssetId?: Types.ObjectId
+        hasInteractiveQuestions?: boolean
+    }
+
+    if (lesson.type !== 'video') {
+        if (lesson.hasInteractiveQuestions) {
+            next(new Error('Interactive scenarios are allowed only for video lessons'))
+            return
+        }
+
+        lesson.videoAssetId = undefined
+    }
+
+    next()
+})
 
 const moduleSchema = new Schema(
   {

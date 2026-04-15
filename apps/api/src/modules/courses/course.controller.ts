@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import { CourseService } from './course.service'
+import CourseService from './course.service'
 
 export class CourseController {
   static async getCourses(req: Request, res: Response): Promise<void> {

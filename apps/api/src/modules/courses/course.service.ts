@@ -6,12 +6,13 @@ import type {
   UpdateCourseRequestDto,
   ModuleDto,
   LessonDto,
-  UserRole
+  UserRole,
+  VideoAssetDto
 } from '@interactive-video-platform/shared'
-import { z } from 'zod'
 import { CourseModel } from './course.model'
 import { createCourseSchema, updateCourseSchema } from './course.schemas'
 import { HttpError } from '../../utils/http-error'
+import { VideoAssetsService, toVideoAssetDto } from '../video-assets/video-assets.service'
 
 type AuthContext = {
   userId?: string
@@ -24,10 +25,11 @@ type DbLesson = {
   description?: string
   order: number
   type: LessonDto['type']
-  videoUrl?: string
+  videoAssetId?: { toString(): string } | string
   content?: string
   durationSeconds?: number
   isPreview: boolean
+  hasInteractiveQuestions?: boolean
   createdAt: Date | string
   updatedAt: Date | string
 }
@@ -57,25 +59,74 @@ type DbCourse = {
   updatedAt: Date | string
 }
 
+type LessonWithAsset = DbLesson & {
+  videoAsset?: VideoAssetDto
+}
+
+type ModuleWithAssets = Omit<DbModule, 'lessons'> & {
+  lessons: LessonWithAsset[]
+}
+
+type CourseWithAssets = Omit<DbCourse, 'modules'> & {
+  modules: ModuleWithAssets[]
+}
+
 const toIso = (value: Date | string): string => new Date(value).toISOString()
 
-const toLessonDto = (lesson: DbLesson): LessonDto => {
+const attachVideoAssetsToLessons = async (
+    course: DbCourse
+): Promise<CourseWithAssets> => {
+  const resolvedModules: ModuleWithAssets[] = await Promise.all(
+      (course.modules ?? []).map(async (module): Promise<ModuleWithAssets> => {
+        const resolvedLessons: LessonWithAsset[] = await Promise.all(
+            (module.lessons ?? []).map(async (lesson): Promise<LessonWithAsset> => {
+              if (lesson.videoAssetId) {
+                const asset = await VideoAssetsService.getById(lesson.videoAssetId.toString())
+
+                return {
+                  ...lesson,
+                  videoAsset: toVideoAssetDto(asset)
+                }
+              }
+
+              return {
+                ...lesson
+              }
+            })
+        )
+
+        return {
+          ...module,
+          lessons: resolvedLessons
+        }
+      })
+  )
+
+  return {
+    ...course,
+    modules: resolvedModules
+  }
+}
+
+const toLessonDto = (lesson: LessonWithAsset): LessonDto => {
   return {
     id: lesson._id.toString(),
     title: lesson.title,
     description: lesson.description,
     order: lesson.order,
     type: lesson.type,
-    videoUrl: lesson.videoUrl,
+    videoAssetId: lesson.videoAssetId?.toString(),
+    videoAsset: lesson.videoAsset,
     content: lesson.content,
     durationSeconds: lesson.durationSeconds,
     isPreview: lesson.isPreview,
+    hasInteractiveQuestions: lesson.hasInteractiveQuestions ?? false,
     createdAt: toIso(lesson.createdAt),
     updatedAt: toIso(lesson.updatedAt)
   }
 }
 
-const toModuleDto = (module: DbModule): ModuleDto => {
+const toModuleDto = (module: ModuleWithAssets): ModuleDto => {
   return {
     id: module._id.toString(),
     title: module.title,
@@ -87,7 +138,7 @@ const toModuleDto = (module: DbModule): ModuleDto => {
   }
 }
 
-const toCourseDto = (course: DbCourse): CourseDto => {
+const toCourseDto = (course: CourseWithAssets): CourseDto => {
   return {
     id: course._id.toString(),
     title: course.title,
@@ -140,11 +191,43 @@ const canManageCourse = (course: DbCourse, auth: AuthContext): boolean => {
   return false
 }
 
-export class CourseService {
+const validateLessonsVideoAssets = async (
+    modules: NonNullable<CreateCourseRequestDto['modules'] | UpdateCourseRequestDto['modules']>
+): Promise<void> => {
+  for (const module of modules) {
+    for (const lesson of module.lessons ?? []) {
+      if (lesson.type === 'video' && lesson.videoAssetId) {
+        await VideoAssetsService.getById(lesson.videoAssetId)
+      }
+
+      if (lesson.hasInteractiveQuestions) {
+        if (lesson.type !== 'video') {
+          throw new HttpError(400, 'Interactive scenarios are allowed only for video lessons')
+        }
+
+        if (!lesson.videoAssetId) {
+          throw new HttpError(400, 'Interactive video lesson must reference videoAssetId')
+        }
+
+        await VideoAssetsService.validateReady(lesson.videoAssetId)
+      }
+    }
+  }
+}
+
+
+class CourseService {
   static async getCourses(auth?: AuthContext): Promise<CoursesListResponseDto> {
     if (auth?.role === 'admin') {
       const courses = await CourseModel.find().sort({ createdAt: -1 })
-      return { courses: courses.map((course) => toCourseDto(course.toObject() as DbCourse)) }
+      const mapped = await Promise.all(
+          courses.map(async (course) => {
+            const courseWithAssets = await attachVideoAssetsToLessons(course.toObject() as DbCourse)
+            return toCourseDto(courseWithAssets)
+          })
+      )
+
+      return { courses: mapped }
     }
 
     if (auth?.role === 'teacher' && auth.userId) {
@@ -152,12 +235,26 @@ export class CourseService {
         $or: [{ status: 'published' }, { authorId: auth.userId }]
       }).sort({ createdAt: -1 })
 
-      return { courses: courses.map((course) => toCourseDto(course.toObject() as DbCourse)) }
+      const mapped = await Promise.all(
+          courses.map(async (course) => {
+            const courseWithAssets = await attachVideoAssetsToLessons(course.toObject() as DbCourse)
+            return toCourseDto(courseWithAssets)
+          })
+      )
+
+      return { courses: mapped }
     }
 
     const courses = await CourseModel.find({ status: 'published' }).sort({ createdAt: -1 })
 
-    return { courses: courses.map((course) => toCourseDto(course.toObject() as DbCourse)) }
+    const mapped = await Promise.all(
+        courses.map(async (course) => {
+          const courseWithAssets = await attachVideoAssetsToLessons(course.toObject() as DbCourse)
+          return toCourseDto(courseWithAssets)
+        })
+    )
+
+    return { courses: mapped }
   }
 
   static async getCourseById(courseId: string, auth?: AuthContext): Promise<CourseResponseDto> {
@@ -173,14 +270,17 @@ export class CourseService {
       throw new HttpError(404, 'Course not found')
     }
 
+
+    const courseWithAssets = await attachVideoAssetsToLessons(courseObject)
+
     return {
-      course: toCourseDto(courseObject)
+      course: toCourseDto(courseWithAssets)
     }
   }
 
   static async createCourse(
     payload: CreateCourseRequestDto,
-    auth: Required<Pick<AuthContext, 'userId' | 'role'>>
+    auth: Required<AuthContext>
   ): Promise<CourseResponseDto> {
     const data = createCourseSchema.parse(payload)
 
@@ -188,6 +288,10 @@ export class CourseService {
 
     if (existingCourse) {
       throw new HttpError(409, 'Course with this slug already exists')
+    }
+
+    if (data.modules) {
+      await validateLessonsVideoAssets(data.modules)
     }
 
     const course = await CourseModel.create({
@@ -198,15 +302,15 @@ export class CourseService {
       authorId: auth.userId
     })
 
-    return {
-      course: toCourseDto(course.toObject() as DbCourse)
-    }
+    const courseWithAssets = await attachVideoAssetsToLessons(course.toObject() as DbCourse)
+
+    return { course: toCourseDto(courseWithAssets) }
   }
 
   static async updateCourse(
     courseId: string,
     payload: UpdateCourseRequestDto,
-    auth: Required<Pick<AuthContext, 'userId' | 'role'>>
+    auth: Required<AuthContext>
   ): Promise<CourseResponseDto> {
     const data = updateCourseSchema.parse(payload)
 
@@ -228,6 +332,9 @@ export class CourseService {
       if (existingCourse && existingCourse._id.toString() !== courseId) {
         throw new HttpError(409, 'Course with this slug already exists')
       }
+    }
+    if (data.modules) {
+      await validateLessonsVideoAssets(data.modules)
     }
 
     if (data.title !== undefined) {
@@ -264,14 +371,14 @@ export class CourseService {
 
     await course.save()
 
-    return {
-      course: toCourseDto(course.toObject() as DbCourse)
-    }
+    const courseWithAssets = await attachVideoAssetsToLessons(course.toObject() as DbCourse)
+
+    return { course: toCourseDto(courseWithAssets) }
   }
 
   static async deleteCourse(
     courseId: string,
-    auth: Required<Pick<AuthContext, 'userId' | 'role'>>
+    auth: Required<AuthContext>
   ): Promise<void> {
     const course = await CourseModel.findById(courseId)
 
@@ -288,3 +395,5 @@ export class CourseService {
     await course.deleteOne()
   }
 }
+
+export default CourseService

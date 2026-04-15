@@ -7,7 +7,6 @@ import { useUpdateCourse } from '../../features/courses/hooks/useUpdateCourse.ts
 import { CourseForm } from '../../features/courses/ui/CourseForm/CourseForm.tsx'
 import { ModuleEditor, type EditableModule } from '../../features/courses/ui/ModuleEditor/ModuleEditor.tsx'
 import { VideoPlayer } from '../../shared/ui/VideoPlayer/VideoPlayer'
-import { detectVideoSource } from '../../shared/ui/VideoPlayer/detectVideoSource'
 import './CoursePage.scss'
 
 type ViewMode = 'view' | 'edit-course' | 'edit-structure'
@@ -15,7 +14,7 @@ type ViewMode = 'view' | 'edit-course' | 'edit-structure'
 type LessonValidationErrors = {
   title?: string
   order?: string
-  videoUrl?: string
+  videoAssetId?: string
   durationSeconds?: string
   content?: string
 }
@@ -78,14 +77,18 @@ export const CoursePage = () => {
       description: module.description ?? '',
       order: module.order,
       lessons: module.lessons.map((lesson) => ({
+        clientId: lesson.id,
         title: lesson.title,
         description: lesson.description ?? '',
         order: lesson.order,
         type: lesson.type,
-        videoUrl: lesson.videoUrl ?? '',
+        videoAssetId: lesson.videoAssetId ?? '',
+        videoAsset: lesson.videoAsset,
+        videoFileName: '',
         content: lesson.content ?? '',
         durationSeconds: lesson.durationSeconds ? String(lesson.durationSeconds) : '',
-        isPreview: lesson.isPreview
+        isPreview: lesson.isPreview,
+        hasInteractiveQuestions: lesson.hasInteractiveQuestions ?? false
       }))
     }))
   }, [course])
@@ -141,11 +144,8 @@ export const CoursePage = () => {
           lessonError.order = 'Порядок уроку повинен бути числом 1 або більше'
         }
 
-        if (lesson.type === 'video' && lesson.videoUrl.trim()) {
-          const source = detectVideoSource(lesson.videoUrl.trim())
-          if (source.type === 'unsupported') {
-            lessonError.videoUrl = 'Використовуй YouTube, Vimeo, Loom або пряме .mp4 посилання'
-          }
+        if (lesson.type === 'video' && !lesson.videoAssetId.trim()) {
+          lessonError.videoAssetId = 'Для відеоуроку завантажте відео'
         }
 
         if (lesson.durationSeconds.trim()) {
@@ -173,7 +173,7 @@ export const CoursePage = () => {
         (lessonError) =>
           lessonError.title ||
           lessonError.order ||
-          lessonError.videoUrl ||
+          lessonError.videoAssetId ||
           lessonError.durationSeconds ||
           lessonError.content
       )
@@ -199,10 +199,11 @@ export const CoursePage = () => {
           description: lesson.description.trim() || undefined,
           order: Number.isNaN(lesson.order) ? lessonIndex + 1 : lesson.order,
           type: lesson.type,
-          videoUrl: lesson.videoUrl.trim() || undefined,
+          videoAssetId: lesson.videoAssetId.trim() || undefined,
           content: lesson.content.trim() || undefined,
           durationSeconds: lesson.durationSeconds ? Number(lesson.durationSeconds) : undefined,
-          isPreview: lesson.isPreview
+          isPreview: lesson.isPreview,
+          hasInteractiveQuestions: lesson.hasInteractiveQuestions
         }))
       }))
     },
@@ -290,8 +291,8 @@ export const CoursePage = () => {
                           <li key={lesson.id}>
                             <strong>{lesson.title}</strong> | {lesson.type} | порядок: {lesson.order}
                             {lesson.description ? <div>{lesson.description}</div> : null}
-                            {lesson.type === 'video' && lesson.videoUrl ? (
-                              <VideoPlayer url={lesson.videoUrl} />
+                            {lesson.type === 'video' && lesson.videoAsset?.playbackUrl ? (
+                                <VideoPlayer url={lesson.videoAsset.playbackUrl} />
                             ) : null}
                             {lesson.type === 'text' && lesson.content ? (
                               <div className='course-page__lesson-content'>{lesson.content}</div>

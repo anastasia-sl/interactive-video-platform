@@ -13,4 +13,4 @@ export const uploadVideoMiddleware = multer({
       callback(new Error('Дозволені формати: mp4, webm, ogg'))
     }
   }
-}).single('video')
+}).single('file')

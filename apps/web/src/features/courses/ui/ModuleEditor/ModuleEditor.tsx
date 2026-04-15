@@ -11,7 +11,7 @@ export type EditableModule = {
 type LessonErrors = {
   title?: string
   order?: string
-  videoUrl?: string
+  videoAssetId?: string
   durationSeconds?: string
   content?: string
 }
@@ -32,18 +32,22 @@ type Props = {
 
 const createEmptyLesson = (): EditableLesson => {
   return {
+    clientId: crypto.randomUUID(),
     title: '',
     description: '',
     order: 1,
     type: 'video',
-    videoUrl: '',
+    videoAssetId: '',
+    videoAsset: undefined,
+    videoFileName: '',
     content: '',
     durationSeconds: '',
-    isPreview: false
+    isPreview: false,
+    hasInteractiveQuestions: false
   }
 }
 
-export const ModuleEditor = ({module, index, errors, onChange, onRemove}: Props) => {
+export const ModuleEditor = ({module, errors, onChange, onRemove}: Props) => {
   const updateLesson = (lessonIndex: number, nextLesson: EditableLesson) => {
     const nextLessons = [...module.lessons]
     nextLessons[lessonIndex] = nextLesson
@@ -121,7 +125,7 @@ export const ModuleEditor = ({module, index, errors, onChange, onRemove}: Props)
       <div className='module-editor__lessons'>
         {module.lessons.map((lesson, lessonIndex) => (
           <LessonEditor
-            key={`${index}-${lessonIndex}`}
+            key={lesson.clientId}
             lesson={lesson}
             index={lessonIndex}
             errors={errors?.lessons?.[lessonIndex]}

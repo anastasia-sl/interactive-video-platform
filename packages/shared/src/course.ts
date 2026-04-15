@@ -1,3 +1,5 @@
+import type { VideoAssetDto } from './video-asset'
+
 export const COURSE_STATUSES = ['draft', 'published'] as const
 
 export type CourseStatus = (typeof COURSE_STATUSES)[number]
@@ -12,10 +14,12 @@ export interface LessonDto {
   description?: string
   order: number
   type: LessonType
-  videoUrl?: string
+  videoAssetId?: string
+  videoAsset?: VideoAssetDto
   content?: string
   durationSeconds?: number
   isPreview: boolean
+  hasInteractiveQuestions?: boolean
   createdAt: string
   updatedAt: string
 }
@@ -50,10 +54,11 @@ export interface CreateLessonRequestDto {
   description?: string
   order: number
   type: LessonType
-  videoUrl?: string
+  videoAssetId?: string
   content?: string
   durationSeconds?: number
   isPreview?: boolean
+  hasInteractiveQuestions?: boolean
 }
 
 export interface CreateModuleRequestDto {
@@ -79,10 +84,11 @@ export interface UpdateLessonRequestDto {
   description?: string
   order?: number
   type?: LessonType
-  videoUrl?: string
+  videoAssetId?: string
   content?: string
   durationSeconds?: number
   isPreview?: boolean
+  hasInteractiveQuestions?: boolean
 }
 
 export interface UpdateModuleRequestDto {

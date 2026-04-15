@@ -1,16 +1,37 @@
 import { z } from 'zod'
 import { COURSE_STATUSES, LESSON_TYPES } from '@interactive-video-platform/shared'
 
-const lessonSchema = z.object({
-  title: z.string().min(2).max(160).trim(),
-  description: z.string().max(2000).trim().optional(),
-  order: z.number().int().min(0),
-  type: z.enum(LESSON_TYPES),
-  videoUrl: z.url().optional(),
-  content: z.string().max(20000).optional(),
-  durationSeconds: z.number().int().min(0).optional(),
-  isPreview: z.boolean().optional()
-})
+const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid ObjectId')
+
+const lessonSchema = z
+    .object({
+      title: z.string().min(2).max(160).trim(),
+      description: z.string().max(2000).trim().optional(),
+      order: z.number().int().min(0),
+      type: z.enum(LESSON_TYPES),
+      videoAssetId: objectIdSchema.optional(),
+      content: z.string().max(20000).optional(),
+      durationSeconds: z.number().int().min(0).optional(),
+      isPreview: z.boolean().optional(),
+      hasInteractiveQuestions: z.boolean().optional()
+    })
+    .superRefine((lesson, ctx) => {
+      if (lesson.type === 'text' && lesson.videoAssetId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['videoAssetId'],
+          message: 'Text lesson cannot have videoAssetId'
+        })
+      }
+
+      if (lesson.type === 'text' && lesson.hasInteractiveQuestions) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['hasInteractiveQuestions'],
+          message: 'Interactive scenarios are allowed only for video lessons'
+        })
+      }
+    })
 
 const moduleSchema = z.object({
   title: z.string().min(2).max(160).trim(),
