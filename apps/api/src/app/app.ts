@@ -5,6 +5,7 @@ import { authRouter } from '../modules/auth/auth.routes'
 import { coursesRouter } from '../modules/courses/course.routes'
 import { errorMiddleware } from '../middlewares/error.middleware'
 import { storageRouter } from '../modules/storage/storage.routes'
+import { interactiveQuestionRouter } from '../modules/interactive-questions/interactive-question.routes'
 
 export const createApp = () => {
   const app = express()
@@ -40,6 +41,7 @@ export const createApp = () => {
   app.use('/api/auth', authRouter)
   app.use('/api/courses', coursesRouter)
   app.use('/api/storage', storageRouter)
+  app.use('/api/interactive-questions', interactiveQuestionRouter)
 
   app.use(errorMiddleware)
 
