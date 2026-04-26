@@ -10,6 +10,7 @@ import type {
 import { z } from 'zod'
 import { Types } from 'mongoose'
 import { CourseModel } from '../courses/course.model'
+import { VideoAssetModel } from '../video-assets/video-asset.model'
 import { InteractiveQuestionModel } from './interactive-question.model'
 import {
     createQuestionSchema,
@@ -27,11 +28,12 @@ type DbLesson = {
     title: string
     description?: string
     order: number
-    type: string
-    videoUrl?: string
+    type: 'video' | 'text'
+    videoAssetId?: Types.ObjectId | string
     content?: string
     durationSeconds?: number
     isPreview: boolean
+    hasInteractiveQuestions?: boolean
     createdAt: Date | string
     updatedAt: Date | string
 }
@@ -184,8 +186,13 @@ const findCourseByLessonId = async (lessonId: string): Promise<DbCourse> => {
         throw new HttpError(400, 'Invalid lesson id')
     }
 
+    const lessonObjectId = new Types.ObjectId(lessonId)
+
     const course = await CourseModel.findOne({
-        'modules.lessons._id': new Types.ObjectId(lessonId)
+        $or: [
+            { 'modules.lessons._id': lessonObjectId },
+            { 'modules.lessons._id': lessonId }
+        ]
     })
 
     if (!course) {
@@ -205,6 +212,47 @@ const findLessonInCourse = (course: DbCourse, lessonId: string): DbLesson => {
     }
 
     throw new HttpError(404, 'Lesson not found')
+}
+
+const assertLessonIsReadyVideo = async (lesson: DbLesson): Promise<void> => {
+    if (lesson.type !== 'video') {
+        throw new HttpError(400, 'Interactive questions are allowed only for video lessons')
+    }
+
+    if (!lesson.videoAssetId) {
+        throw new HttpError(400, 'Video lesson must reference videoAssetId')
+    }
+
+    const videoAsset = await VideoAssetModel.findById(lesson.videoAssetId)
+
+    if (!videoAsset) {
+        throw new HttpError(404, 'Video asset not found')
+    }
+
+    if (videoAsset.status !== 'ready') {
+        throw new HttpError(400, 'Interactive questions can be edited only when video asset is ready')
+    }
+
+    if (typeof videoAsset.durationSec !== 'number') {
+        throw new HttpError(400, 'Video asset durationSec is required')
+    }
+}
+
+const findManageableReadyVideoLesson = async (
+    lessonId: string,
+    auth: AuthContext
+): Promise<{ course: DbCourse; lesson: DbLesson }> => {
+    const course = await findCourseByLessonId(lessonId)
+
+    if (!canManageCourse(course, auth)) {
+        throw new HttpError(403, 'Forbidden')
+    }
+
+    const lesson = findLessonInCourse(course, lessonId)
+
+    await assertLessonIsReadyVideo(lesson)
+
+    return { course, lesson }
 }
 
 const findQuestionById = async (questionId: string): Promise<DbQuestion> => {
@@ -228,13 +276,7 @@ export class InteractiveQuestionsService {
     ): Promise<{ question: TeacherQuestionDto }> {
         const data = createQuestionSchema.parse(payload)
 
-        const course = await findCourseByLessonId(data.lessonId)
-
-        if (!canManageCourse(course, auth)) {
-            throw new HttpError(403, 'Forbidden')
-        }
-
-        findLessonInCourse(course, data.lessonId)
+        await findManageableReadyVideoLesson(data.lessonId, auth)
 
         const existingQuestionWithOrder = await InteractiveQuestionModel.findOne({
             lessonId: new Types.ObjectId(data.lessonId),
@@ -259,8 +301,16 @@ export class InteractiveQuestionsService {
             explanation: data.explanation
         })
 
+        await CourseModel.updateOne(
+            { 'modules.lessons._id': new Types.ObjectId(data.lessonId) },
+            { $set: { 'modules.$[].lessons.$[lesson].hasInteractiveQuestions': true } },
+            { arrayFilters: [{ 'lesson._id': new Types.ObjectId(data.lessonId) }] }
+        )
+
         return {
+
             question: toTeacherQuestionDto(question.toObject() as DbQuestion)
+
         }
     }
 
@@ -276,11 +326,7 @@ export class InteractiveQuestionsService {
             throw new HttpError(404, 'Question not found')
         }
 
-        const course = await findCourseByLessonId(question.lessonId.toString())
-
-        if (!canManageCourse(course, auth)) {
-            throw new HttpError(403, 'Forbidden')
-        }
+        await findManageableReadyVideoLesson(question.lessonId.toString(), auth)
 
         if (data.timecodeSec !== undefined) {
             question.timecodeSec = data.timecodeSec
@@ -349,13 +395,21 @@ export class InteractiveQuestionsService {
             throw new HttpError(404, 'Question not found')
         }
 
-        const course = await findCourseByLessonId(question.lessonId.toString())
-
-        if (!canManageCourse(course, auth)) {
-            throw new HttpError(403, 'Forbidden')
-        }
-
+        const lessonId = question.lessonId.toString()
+        await findManageableReadyVideoLesson(lessonId, auth)
         await question.deleteOne()
+
+        const questionsCount = await InteractiveQuestionModel.countDocuments({
+            lessonId: new Types.ObjectId(lessonId)
+        })
+
+        if (questionsCount === 0) {
+            await CourseModel.updateOne(
+                { 'modules.lessons._id': new Types.ObjectId(lessonId) },
+                { $set: { 'modules.$[].lessons.$[lesson].hasInteractiveQuestions': false } },
+                { arrayFilters: [{ 'lesson._id': new Types.ObjectId(lessonId) }] }
+            )
+        }
     }
 
     static async reorderQuestions(
@@ -366,17 +420,11 @@ export class InteractiveQuestionsService {
         auth: Required<AuthContext>
     ): Promise<{ questions: TeacherQuestionDto[] }> {
         const data = reorderQuestionsSchema.parse(payload)
-        const course = await findCourseByLessonId(data.lessonId)
-
-        if (!canManageCourse(course, auth)) {
-            throw new HttpError(403, 'Forbidden')
-        }
-
-        findLessonInCourse(course, data.lessonId)
+        await findManageableReadyVideoLesson(data.lessonId, auth)
 
         const existingQuestions = await InteractiveQuestionModel.find({
             lessonId: new Types.ObjectId(data.lessonId)
-        }).sort({ order: 1 })
+        }).sort({ timecodeSec: 1, order: 1 })
 
         if (existingQuestions.length !== data.items.length) {
             throw new HttpError(400, 'Reorder payload must contain all lesson questions')
@@ -400,7 +448,7 @@ export class InteractiveQuestionsService {
 
         const updatedQuestions = await InteractiveQuestionModel.find({
             lessonId: new Types.ObjectId(data.lessonId)
-        }).sort({ order: 1 })
+        }).sort({ timecodeSec: 1, order: 1 })
 
         return {
             questions: updatedQuestions.map((item) =>
@@ -413,17 +461,11 @@ export class InteractiveQuestionsService {
         lessonId: string,
         auth: Required<AuthContext>
     ): Promise<{ questions: TeacherQuestionDto[] }> {
-        const course = await findCourseByLessonId(lessonId)
-
-        if (!canManageCourse(course, auth)) {
-            throw new HttpError(403, 'Forbidden')
-        }
-
-        findLessonInCourse(course, lessonId)
+        await findManageableReadyVideoLesson(lessonId, auth)
 
         const questions = await InteractiveQuestionModel.find({
             lessonId: new Types.ObjectId(lessonId)
-        }).sort({ order: 1 })
+        }).sort({ timecodeSec: 1, order: 1 })
 
         return {
             questions: questions.map((item) => toTeacherQuestionDto(item.toObject() as DbQuestion))
@@ -440,11 +482,14 @@ export class InteractiveQuestionsService {
             throw new HttpError(404, 'Lesson not found')
         }
 
-        findLessonInCourse(course, lessonId)
+        const lesson = findLessonInCourse(course, lessonId)
+        if (lesson.type !== 'video') {
+            throw new HttpError(404, 'Lesson not found')
+        }
 
         const questions = await InteractiveQuestionModel.find({
             lessonId: new Types.ObjectId(lessonId)
-        }).sort({ order: 1 })
+        }).sort({ timecodeSec: 1, order: 1 })
 
         return {
             questions: questions.map((item) => toStudentQuestionDto(item.toObject() as DbQuestion))
@@ -456,11 +501,7 @@ export class InteractiveQuestionsService {
         auth: Required<AuthContext>
     ): Promise<{ question: TeacherQuestionDto }> {
         const question = await findQuestionById(questionId)
-        const course = await findCourseByLessonId(question.lessonId.toString())
-
-        if (!canManageCourse(course, auth)) {
-            throw new HttpError(403, 'Forbidden')
-        }
+        await findManageableReadyVideoLesson(question.lessonId.toString(), auth)
 
         return {
             question: toTeacherQuestionDto(question)

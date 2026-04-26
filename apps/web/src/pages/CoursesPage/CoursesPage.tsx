@@ -15,7 +15,6 @@ export const CoursesPage = () => {
 
   const role = meData?.user.role
   const myUserId = meData?.user.id
-  const canCreate = role === 'teacher' || role === 'admin'
 
   const filteredCourses = useMemo(() => {
     const courses = data?.courses ?? []
