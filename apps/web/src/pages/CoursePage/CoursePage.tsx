@@ -6,7 +6,7 @@ import { useDeleteCourse } from '../../features/courses/hooks/useDeleteCourse.ts
 import { useUpdateCourse } from '../../features/courses/hooks/useUpdateCourse.ts'
 import { CourseForm } from '../../features/courses/ui/CourseForm/CourseForm.tsx'
 import { ModuleEditor, type EditableModule } from '../../features/courses/ui/ModuleEditor/ModuleEditor.tsx'
-import { VideoPlayer } from '../../shared/ui/VideoPlayer/VideoPlayer'
+import { InteractiveVideoPlayer } from '../../features/interactive-video/ui/InteractiveVideoPlayer/InteractiveVideoPlayer'
 import './CoursePage.scss'
 
 type ViewMode = 'view' | 'edit-course' | 'edit-structure'
@@ -27,6 +27,7 @@ type ModuleValidationErrors = {
 
 const createEmptyModule = (): EditableModule => {
   return {
+    clientId: crypto.randomUUID(),
     title: '',
     description: '',
     order: 1,
@@ -73,10 +74,13 @@ export const CoursePage = () => {
     }
 
     return course.modules.map((module) => ({
+      id: module.id,
+      clientId: module.id,
       title: module.title,
       description: module.description ?? '',
       order: module.order,
       lessons: module.lessons.map((lesson) => ({
+        id: lesson.id,
         clientId: lesson.id,
         title: lesson.title,
         description: lesson.description ?? '',
@@ -190,22 +194,24 @@ export const CoursePage = () => {
     }
 
     updateCourseMutation.mutate({
-      modules: modules.map((module, moduleIndex) => ({
-        title: module.title.trim(),
-        description: module.description.trim() || undefined,
-        order: Number.isNaN(module.order) ? moduleIndex + 1 : module.order,
-        lessons: module.lessons.map((lesson, lessonIndex) => ({
-          title: lesson.title.trim(),
-          description: lesson.description.trim() || undefined,
-          order: Number.isNaN(lesson.order) ? lessonIndex + 1 : lesson.order,
-          type: lesson.type,
-          videoAssetId: lesson.videoAssetId.trim() || undefined,
-          content: lesson.content.trim() || undefined,
-          durationSeconds: lesson.durationSeconds ? Number(lesson.durationSeconds) : undefined,
-          isPreview: lesson.isPreview,
-          hasInteractiveQuestions: lesson.hasInteractiveQuestions
-        }))
-      }))
+          modules: modules.map((module, moduleIndex) => ({
+            id: module.id,
+            title: module.title.trim(),
+            description: module.description.trim() || undefined,
+            order: Number.isNaN(module.order) ? moduleIndex + 1 : module.order,
+            lessons: module.lessons.map((lesson, lessonIndex) => ({
+              id: lesson.id,
+              title: lesson.title.trim(),
+              description: lesson.description.trim() || undefined,
+              order: Number.isNaN(lesson.order) ? lessonIndex + 1 : lesson.order,
+              type: lesson.type,
+              videoAssetId: lesson.videoAssetId.trim() || undefined,
+              content: lesson.content.trim() || undefined,
+              durationSeconds: lesson.durationSeconds ? Number(lesson.durationSeconds) : undefined,
+              isPreview: lesson.isPreview,
+              hasInteractiveQuestions: lesson.hasInteractiveQuestions
+            }))
+          }))
     },
       {
         onSuccess: () => {
@@ -292,7 +298,10 @@ export const CoursePage = () => {
                             <strong>{lesson.title}</strong> | {lesson.type} | порядок: {lesson.order}
                             {lesson.description ? <div>{lesson.description}</div> : null}
                             {lesson.type === 'video' && lesson.videoAsset?.playbackUrl ? (
-                                <VideoPlayer url={lesson.videoAsset.playbackUrl} />
+                                <InteractiveVideoPlayer
+                                    lessonId={lesson.id}
+                                    videoUrl={lesson.videoAsset.playbackUrl}
+                                />
                             ) : null}
                             {lesson.type === 'text' && lesson.content ? (
                               <div className='course-page__lesson-content'>{lesson.content}</div>

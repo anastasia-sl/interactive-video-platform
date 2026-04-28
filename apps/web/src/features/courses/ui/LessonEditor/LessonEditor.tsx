@@ -1,10 +1,12 @@
-import type { ChangeEvent } from 'react'
+import {type ChangeEvent, useState} from 'react'
 import type { LessonType } from '../../../../shared/types/course'
 import type { VideoAssetDto } from '@interactive-video-platform/shared'
 import { useUploadVideo } from '../../hooks/useUploadVideo'
+import { InteractiveQuestionsEditor } from '../../../interactive-questions/ui/InteractiveQuestionsEditor/InteractiveQuestionsEditor'
 import './LessonEditor.scss'
 
 export type EditableLesson = {
+  id?: string
   clientId: string
   title: string
   description: string
@@ -37,6 +39,7 @@ type Props = {
 
 export const LessonEditor = ({ lesson, errors, onChange, onRemove }: Props) => {
   const uploadMutation = useUploadVideo()
+  const [isInteractiveQuestionsEditorOpen, setIsInteractiveQuestionsEditorOpen] = useState(false)
 
   const handleTypeChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const nextType = event.target.value as LessonType
@@ -82,6 +85,13 @@ export const LessonEditor = ({ lesson, errors, onChange, onRemove }: Props) => {
 
     event.target.value = ''
   }
+    const lessonIdForInteractiveQuestions = lesson.id
+
+    const videoDurationSeconds = Number(
+        lesson.videoAsset?.durationSec ?? lesson.durationSeconds
+    )
+
+
   return (
     <div className='lesson-editor'>
       <div className='lesson-editor__header'>
@@ -191,6 +201,57 @@ export const LessonEditor = ({ lesson, errors, onChange, onRemove }: Props) => {
             ) : null}
           </div>
       ) : null}
+
+      {lesson.type === 'text' && (
+          <p>Інтерактивні питання доступні тільки для відеоуроків.</p>
+      )}
+
+      {lesson.type === 'video' && !lesson.videoAssetId && (
+          <p>Щоб додати інтерактивні питання, спочатку завантажте відео до уроку.</p>
+      )}
+
+      {lesson.type === 'video' &&
+          lesson.videoAssetId &&
+          lesson.videoAsset?.status !== 'ready' && (
+              <p>Інтерактивні питання можна додати після завершення обробки відео.</p>
+          )}
+
+      {lesson.type === 'video' &&
+          lesson.videoAssetId &&
+          lesson.videoAsset?.status === 'ready' &&
+          !lessonIdForInteractiveQuestions && (
+              <p>Щоб додати інтерактивні питання, спочатку збережіть урок.</p>
+          )}
+
+      {lesson.type === 'video' &&
+          lesson.videoAssetId &&
+          lesson.videoAsset?.status === 'ready' &&
+          lessonIdForInteractiveQuestions && (
+              <section>
+                <button
+                    type="button"
+                    onClick={() =>
+                        setIsInteractiveQuestionsEditorOpen((currentValue) => !currentValue)
+                    }
+                >
+                  {isInteractiveQuestionsEditorOpen
+                      ? 'Закрити редактор інтерактивних питань'
+                      : 'Додати інтерактивні питання'}
+                </button>
+
+                {isInteractiveQuestionsEditorOpen && (
+                    <InteractiveQuestionsEditor
+                        lessonId={lessonIdForInteractiveQuestions}
+                        videoUrl={lesson.videoAsset.playbackUrl ?? lesson.videoAsset.secureUrl}
+                        durationSeconds={
+                          Number.isFinite(videoDurationSeconds)
+                              ? videoDurationSeconds
+                              : undefined
+                        }
+                    />
+                )}
+              </section>
+          )}
 
       {lesson.type === 'text' ? (
           <div className='lesson-editor__group'>

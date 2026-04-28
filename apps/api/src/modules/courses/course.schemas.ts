@@ -5,6 +5,7 @@ const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid ObjectId')
 
 const lessonSchema = z
     .object({
+      id: z.string().min(1).trim().optional(),
       title: z.string().min(2).max(160).trim(),
       description: z.string().max(2000).trim().optional(),
       order: z.number().int().min(0),
@@ -34,6 +35,7 @@ const lessonSchema = z
     })
 
 const moduleSchema = z.object({
+  id: z.string().min(1).trim().optional(),
   title: z.string().min(2).max(160).trim(),
   description: z.string().max(2000).trim().optional(),
   order: z.number().int().min(0),

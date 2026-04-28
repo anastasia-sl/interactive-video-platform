@@ -4,6 +4,8 @@ import type {
   CoursesListResponseDto,
   CreateCourseRequestDto,
   UpdateCourseRequestDto,
+  UpdateLessonRequestDto,
+  UpdateModuleRequestDto,
   ModuleDto,
   LessonDto,
   UserRole,
@@ -13,6 +15,7 @@ import { CourseModel } from './course.model'
 import { createCourseSchema, updateCourseSchema } from './course.schemas'
 import { HttpError } from '../../utils/http-error'
 import { VideoAssetsService, toVideoAssetDto } from '../video-assets/video-assets.service'
+import { Types } from 'mongoose'
 
 type AuthContext = {
   userId?: string
@@ -70,6 +73,10 @@ type ModuleWithAssets = Omit<DbModule, 'lessons'> & {
 type CourseWithAssets = Omit<DbCourse, 'modules'> & {
   modules: ModuleWithAssets[]
 }
+
+type IncomingLesson = UpdateLessonRequestDto
+
+type IncomingModule = UpdateModuleRequestDto
 
 const toIso = (value: Date | string): string => new Date(value).toISOString()
 
@@ -215,6 +222,46 @@ const validateLessonsVideoAssets = async (
   }
 }
 
+const createObjectId = (id?: string): Types.ObjectId => {
+  if (id && Types.ObjectId.isValid(id)) {
+    return new Types.ObjectId(id)
+  }
+
+  return new Types.ObjectId()
+}
+
+const createOptionalObjectId = (id?: string): Types.ObjectId | undefined => {
+  if (id && Types.ObjectId.isValid(id)) {
+    return new Types.ObjectId(id)
+  }
+
+  return undefined
+}
+
+const normalizeLessonForPersistence = (lesson: IncomingLesson) => {
+  return {
+    _id: createObjectId(lesson.id),
+    title: lesson.title ?? '',
+    description: lesson.description,
+    order: lesson.order ?? 0,
+    type: lesson.type ?? 'text',
+    videoAssetId: createOptionalObjectId(lesson.videoAssetId),
+    content: lesson.content,
+    durationSeconds: lesson.durationSeconds,
+    isPreview: lesson.isPreview ?? false,
+    hasInteractiveQuestions: lesson.hasInteractiveQuestions ?? false
+  }
+}
+
+const normalizeModuleForPersistence = (module: IncomingModule) => {
+  return {
+    _id: createObjectId(module.id),
+    title: module.title ?? '',
+    description: module.description,
+    order: module.order ?? 0,
+    lessons: (module.lessons ?? []).map(normalizeLessonForPersistence)
+  }
+}
 
 class CourseService {
   static async getCourses(auth?: AuthContext): Promise<CoursesListResponseDto> {
@@ -366,7 +413,7 @@ class CourseService {
     }
 
     if (data.modules !== undefined) {
-      course.set('modules', data.modules)
+      course.set('modules', data.modules.map(normalizeModuleForPersistence))
     }
 
     await course.save()

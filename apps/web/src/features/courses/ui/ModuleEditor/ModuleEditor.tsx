@@ -2,6 +2,8 @@ import {LessonEditor, type EditableLesson} from './../LessonEditor/LessonEditor'
 import './ModuleEditor.scss'
 
 export type EditableModule = {
+  id?: string
+  clientId?: string
   title: string
   description: string
   order: number

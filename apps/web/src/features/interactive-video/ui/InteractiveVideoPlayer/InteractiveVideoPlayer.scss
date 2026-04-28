@@ -1,0 +1,23 @@
+.interactive-video-player {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #020617;
+}
+
+.interactive-video-player__video {
+  display: block;
+  width: 100%;
+  max-height: 520px;
+  background: #020617;
+}
+
+.interactive-video-player__message {
+  margin: 10px 0 0;
+  color: #475569;
+}
+
+.interactive-video-player__message--error {
+  color: #b91c1c;
+}

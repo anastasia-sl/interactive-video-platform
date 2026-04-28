@@ -80,6 +80,7 @@ export interface CreateCourseRequestDto {
 }
 
 export interface UpdateLessonRequestDto {
+  id?: string
   title?: string
   description?: string
   order?: number
@@ -92,6 +93,7 @@ export interface UpdateLessonRequestDto {
 }
 
 export interface UpdateModuleRequestDto {
+  id?: string
   title?: string
   description?: string
   order?: number
