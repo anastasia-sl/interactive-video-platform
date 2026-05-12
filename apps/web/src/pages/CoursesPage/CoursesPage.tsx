@@ -3,7 +3,6 @@ import { useMemo, useState } from 'react'
 import { useMe } from '../../features/auth/hooks/useMe.ts'
 import { useCourses } from '../../features/courses/hooks/useCourses.ts'
 import './CoursesPage.scss'
-import {AppNavigation} from "../../shared/ui/AppNavigation/AppNavigation.tsx";
 
 type StatusFilter = 'all' | 'published' | 'draft'
 
@@ -12,8 +11,6 @@ export const CoursesPage = () => {
   const { data, isLoading, isError, error } = useCourses()
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-
-  const role = meData?.user.role
   const myUserId = meData?.user.id
 
   const filteredCourses = useMemo(() => {
@@ -33,12 +30,6 @@ export const CoursesPage = () => {
         <h1 className='courses-page__title'>Курси</h1>
 
           <div className='courses-page__nav-wrap'>
-            <AppNavigation
-              role={role}
-              showMyCourses
-              showCreate
-              className='courses-page__nav'
-            />
             <div className='courses-page__filter'>
               <label htmlFor='course-status-filter'>Фільтр</label>
               <select

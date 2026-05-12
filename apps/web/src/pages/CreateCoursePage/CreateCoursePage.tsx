@@ -2,7 +2,6 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useMe } from '../../features/auth/hooks/useMe'
 import { useCreateCourse } from '../../features/courses/hooks/useCreateCourse'
 import { CourseForm } from '../../features/courses/ui/CourseForm/CourseForm'
-import {AppNavigation} from "../../shared/ui/AppNavigation/AppNavigation.tsx";
 // import './CreateCoursePage.scss'
 
 export const CreateCoursePage = () => {
@@ -20,11 +19,6 @@ export const CreateCoursePage = () => {
   return (
     <main className="create-course-page">
       <div className="create-course-page__container">
-        <AppNavigation
-          role={role}
-          showMyCourses
-          className="create-course-page__nav"
-        />
 
         <section className="create-course-page__section">
           <div className="create-course-page__section-header">

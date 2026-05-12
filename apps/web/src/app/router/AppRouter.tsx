@@ -8,11 +8,13 @@ import { CoursePage } from '../../pages/CoursePage/CoursePage.tsx'
 import { MyCoursesPage } from '../../pages/MyCoursesPage/MyCoursesPage'
 import { CreateCoursePage } from '../../pages/CreateCoursePage/CreateCoursePage'
 import { RequireAuth } from '../../features/auth-guard/RequireAuth'
+import { AppLayout } from '../../shared/ui/AppLayout/AppLayout'
 
 export const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
+        <Route element={<AppLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -22,6 +24,7 @@ export const AppRouter = () => {
           <Route path="/me" element={<MePage />} />
           <Route path='/my-courses' element={<MyCoursesPage />} />
           <Route path="/courses/create" element={<CreateCoursePage />} />
+        </Route>
         </Route>
       </Routes>
     </BrowserRouter>

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { useMe } from '../../features/auth/hooks/useMe'
 import { useCourses } from '../../features/courses/hooks/useCourses'
 import './MyCoursesPage.scss'
-import {AppNavigation} from "../../shared/ui/AppNavigation/AppNavigation.tsx";
 
 type StatusFilter = 'all' | 'published' | 'draft'
 
@@ -33,12 +32,6 @@ export const MyCoursesPage = () => {
           <h1 className='my-courses-page__title'>Мої курси</h1>
 
           <div className='my-courses-page__top-row'>
-            <AppNavigation
-              role={role}
-              showMyCourses
-              showCreate
-              className='my-courses-page__nav'
-            />
 
             <div className='my-courses-page__filter'>
               <label htmlFor='my-course-status-filter'>Фільтр</label>

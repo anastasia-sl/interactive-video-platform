@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import { useMe } from '../../features/auth/hooks/useMe.ts'
 import { useCourse } from '../../features/courses/hooks/useCourse.ts'
@@ -224,13 +224,6 @@ export const CoursePage = () => {
   return (
     <main  className='course-page'>
       <div className='course-page__container'>
-      <nav className='course-page__nav'>
-        <Link to='/'>Головна</Link>
-        <Link to='/courses'>Курси</Link>
-        {role === 'teacher' || role === 'admin' ? <Link to='/my-courses'>Мої курси</Link> : null}
-        {role === 'teacher' || role === 'admin' ? <Link to='/courses/create'>Створити курс</Link> : null}
-        <Link to='/me'>Мій профіль</Link>
-      </nav>
 
       {isLoading ? <p className='course-page__message'>Завантаження курсу...</p> : null}
       {isError ? <p className='course-page__message course-page__message--error'>{error.message}</p> : null}
