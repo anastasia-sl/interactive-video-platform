@@ -170,13 +170,23 @@ export const LessonEditor = ({ lesson, errors, onChange, onRemove }: Props) => {
       {lesson.type === 'video' ? (
           <div className='lesson-editor__group'>
             <p className='lesson-editor__label'>Завантажте відео:</p>
-            <input
-                className='lesson-editor__field'
-                type='file'
-                accept='video/mp4,video/webm,video/ogg'
-                onChange={handleFileChange}
-                disabled={uploadMutation.isPending}
-            />
+            <label className='lesson-editor__file-upload'>
+  <span>
+    {uploadMutation.isPending
+        ? 'Завантаження відео...'
+        : lesson.videoFileName || lesson.videoAsset
+            ? 'Замінити відео'
+            : 'Обрати відео'}
+  </span>
+
+              <input
+                  className='lesson-editor__file-input'
+                  type='file'
+                  accept='video/mp4,video/webm,video/ogg'
+                  onChange={handleFileChange}
+                  disabled={uploadMutation.isPending}
+              />
+            </label>
 
             {uploadMutation.isPending ? (
                 <p className='lesson-editor__hint'>Завантаження відео...</p>
@@ -188,11 +198,13 @@ export const LessonEditor = ({ lesson, errors, onChange, onRemove }: Props) => {
 
             {lesson.videoFileName ? (
                 <p className='lesson-editor__hint'>Файл: {lesson.videoFileName}</p>
+            ) : lesson.videoAsset ? (
+                <p className='lesson-editor__hint'>Відео вже завантажено</p>
             ) : null}
 
             {lesson.videoAsset ? (
                 <p className='lesson-editor__hint lesson-editor__hint--ok'>
-                  Відео завантажено ✓ | asset: {lesson.videoAsset.id} | статус: {lesson.videoAsset.status}
+                  Відео завантажено | asset: {lesson.videoAsset.id} | статус: {lesson.videoAsset.status}
                 </p>
             ) : null}
 

@@ -297,10 +297,10 @@ export const CoursePage = () => {
                           <li key={lesson.id}>
                             <strong>{lesson.title}</strong> | {lesson.type} | порядок: {lesson.order}
                             {lesson.description ? <div>{lesson.description}</div> : null}
-                            {lesson.type === 'video' && lesson.videoAsset?.playbackUrl ? (
+                            {lesson.type === 'video' && lesson.videoAsset?.secureUrl ? (
                                 <InteractiveVideoPlayer
                                     lessonId={lesson.id}
-                                    videoUrl={lesson.videoAsset.playbackUrl}
+                                    videoUrl={lesson.videoAsset.secureUrl}
                                 />
                             ) : null}
                             {lesson.type === 'text' && lesson.content ? (

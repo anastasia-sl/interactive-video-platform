@@ -1,8 +1,9 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { StudentQuestionDto } from '@interactive-video-platform/shared'
 import { useStudentQuestions } from '../../../interactive-questions/hooks/useInteractiveQuestions'
 import { useSubmitQuestionAnswer } from '../../hooks/useSubmitQuestionAnswer'
 import { QuestionModal } from '../QuestionModal/QuestionModal'
+import { VideoControls } from '../VideoControls/VideoControls'
 import './InteractiveVideoPlayer.scss'
 
 type InteractiveVideoPlayerProps = {
@@ -37,12 +38,17 @@ export const InteractiveVideoPlayer = ({
                                            lessonId,
                                            videoUrl
                                        }: InteractiveVideoPlayerProps) => {
+    const playerRef = useRef<HTMLDivElement | null>(null)
     const videoRef = useRef<HTMLVideoElement | null>(null)
     const [activeQuestion, setActiveQuestion] = useState<StudentQuestionDto | null>(null)
     const [answeredQuestionIds, setAnsweredQuestionIds] = useState<string[]>([])
     const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>([])
     const [answerStatus, setAnswerStatus] = useState<AnswerStatus>('idle')
     const [errorMessage, setErrorMessage] = useState<string>('')
+    const [isPlaying, setIsPlaying] = useState(false)
+    const [currentTime, setCurrentTime] = useState(0)
+    const [duration, setDuration] = useState(0)
+    const [isFullscreen, setIsFullscreen] = useState(false)
 
     const questionsQuery = useStudentQuestions(lessonId)
     const submitAnswerMutation = useSubmitQuestionAnswer()
@@ -51,8 +57,38 @@ export const InteractiveVideoPlayer = ({
         return sortQuestions(questionsQuery.data ?? [])
     }, [questionsQuery.data])
 
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(document.fullscreenElement === playerRef.current)
+        }
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange)
+
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange)
+        }
+    }, [])
+
+    const syncVideoState = () => {
+        const video = videoRef.current
+
+        if (!video) {
+            return
+        }
+
+        setCurrentTime(video.currentTime)
+        setDuration(Number.isFinite(video.duration) ? video.duration : 0)
+        setIsPlaying(!video.paused)
+    }
+
     const activateQuestion = (question: StudentQuestionDto) => {
-        videoRef.current?.pause()
+        const video = videoRef.current
+
+        if (video) {
+            video.pause()
+        }
+
+        setIsPlaying(false)
         setActiveQuestion(question)
         setSelectedOptionIds([])
         setAnswerStatus('idle')
@@ -62,7 +98,13 @@ export const InteractiveVideoPlayer = ({
     const handleTimeUpdate = () => {
         const video = videoRef.current
 
-        if (!video || activeQuestion || questions.length === 0) {
+        if (!video) {
+            return
+        }
+
+        setCurrentTime(video.currentTime)
+
+        if (activeQuestion || questions.length === 0) {
             return
         }
 
@@ -78,6 +120,52 @@ export const InteractiveVideoPlayer = ({
 
         activateQuestion(nextQuestions[0])
     }
+
+        const togglePlay = async () => {
+            const video = videoRef.current
+
+            if (!video || activeQuestion) {
+                return
+            }
+
+            if (video.paused) {
+                await video.play()
+                setIsPlaying(true)
+                return
+            }
+
+            video.pause()
+            setIsPlaying(false)
+        }
+
+        const handleSeek = (progressPercent: number) => {
+            const video = videoRef.current
+
+            if (!video || duration <= 0 || activeQuestion) {
+                return
+            }
+
+            const nextTime = (progressPercent / 100) * duration
+            video.currentTime = nextTime
+            setCurrentTime(nextTime)
+        }
+
+        const toggleFullscreen = async () => {
+            const player = playerRef.current
+
+            if (!player) {
+                return
+            }
+
+            if (!document.fullscreenElement) {
+                await player.requestFullscreen()
+                setIsFullscreen(true)
+                return
+            }
+
+            await document.exitFullscreen()
+            setIsFullscreen(false)
+        }
 
     const toggleOption = (optionId: string) => {
         if (!activeQuestion || answerStatus === 'correct') {
@@ -168,18 +256,36 @@ export const InteractiveVideoPlayer = ({
 
         window.setTimeout(() => {
             videoRef.current?.play()
+            setIsPlaying(true)
         }, 100)
+
     }
 
     return (
-        <div className="interactive-video-player">
+        <div className="interactive-video-player" ref={playerRef}>
             <video
                 ref={videoRef}
                 className="interactive-video-player__video"
                 src={videoUrl}
-                controls={!activeQuestion}
+                preload="metadata"
+                onLoadedMetadata={syncVideoState}
                 onTimeUpdate={handleTimeUpdate}
+                onPlay={syncVideoState}
+                onPause={syncVideoState}
+                onEnded={syncVideoState}
             />
+
+            {!activeQuestion ? (
+                <VideoControls
+                    isPlaying={isPlaying}
+                    currentTime={currentTime}
+                    duration={duration}
+                    isFullscreen={isFullscreen}
+                    onTogglePlay={togglePlay}
+                    onSeek={handleSeek}
+                    onToggleFullscreen={toggleFullscreen}
+                />
+            ) : null}
 
             {questionsQuery.isLoading ? (
                 <p className="interactive-video-player__message">
