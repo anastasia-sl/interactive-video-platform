@@ -2,7 +2,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useMe } from '../../features/auth/hooks/useMe'
 import { useCreateCourse } from '../../features/courses/hooks/useCreateCourse'
 import { CourseForm } from '../../features/courses/ui/CourseForm/CourseForm'
-// import './CreateCoursePage.scss'
+import './CreateCoursePage.scss'
 
 export const CreateCoursePage = () => {
   const navigate = useNavigate()
