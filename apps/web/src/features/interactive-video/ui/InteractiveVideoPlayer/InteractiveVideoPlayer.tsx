@@ -4,9 +4,11 @@ import { useStudentQuestions } from '../../../interactive-questions/hooks/useInt
 import { useSubmitQuestionAnswer } from '../../hooks/useSubmitQuestionAnswer'
 import { QuestionModal } from '../QuestionModal/QuestionModal'
 import { VideoControls } from '../VideoControls/VideoControls'
+import { useCompleteLesson } from '../../../lesson-progress/hooks/useCompleteLesson'
 import './InteractiveVideoPlayer.scss'
 
 type InteractiveVideoPlayerProps = {
+    courseId: string
     lessonId: string
     videoUrl: string
 }
@@ -35,6 +37,7 @@ const findQuestionsAtCurrentTime = (
 }
 
 export const InteractiveVideoPlayer = ({
+                                           courseId,
                                            lessonId,
                                            videoUrl
                                        }: InteractiveVideoPlayerProps) => {
@@ -52,6 +55,7 @@ export const InteractiveVideoPlayer = ({
 
     const questionsQuery = useStudentQuestions(lessonId)
     const submitAnswerMutation = useSubmitQuestionAnswer()
+    const completeLessonMutation = useCompleteLesson({ courseId, lessonId })
 
     const questions = useMemo(() => {
         return sortQuestions(questionsQuery.data ?? [])
@@ -260,6 +264,10 @@ export const InteractiveVideoPlayer = ({
         }, 100)
 
     }
+    const handleEnded = () => {
+        syncVideoState()
+        completeLessonMutation.mutate(Math.floor(videoRef.current?.duration ?? 0))
+    }
 
     return (
         <div className="interactive-video-player" ref={playerRef}>
@@ -272,7 +280,7 @@ export const InteractiveVideoPlayer = ({
                 onTimeUpdate={handleTimeUpdate}
                 onPlay={syncVideoState}
                 onPause={syncVideoState}
-                onEnded={syncVideoState}
+                onEnded={handleEnded}
             />
 
             {!activeQuestion ? (

@@ -7,6 +7,8 @@ import { errorMiddleware } from '../middlewares/error.middleware'
 import { storageRouter } from '../modules/storage/storage.routes'
 import { interactiveQuestionRouter } from '../modules/interactive-questions/interactive-question.routes'
 import { questionAttemptRouter } from '../modules/interactive-question-attempts/question-attempt.routes'
+import { certificatesRouter } from '../modules/certificates/certificates.routes'
+import { lessonProgressRouter } from '../modules/lesson-progress/lesson-progress.routes'
 
 export const createApp = () => {
   const app = express()
@@ -44,6 +46,8 @@ export const createApp = () => {
   app.use('/api/storage', storageRouter)
   app.use('/api/interactive-questions', interactiveQuestionRouter)
   app.use('/api/question-attempts', questionAttemptRouter)
+  app.use('/api/lesson-progress', lessonProgressRouter)
+  app.use('/api/certificates', certificatesRouter)
 
   app.use(errorMiddleware)
 

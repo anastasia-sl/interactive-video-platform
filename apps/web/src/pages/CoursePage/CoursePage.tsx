@@ -7,6 +7,8 @@ import { useUpdateCourse } from '../../features/courses/hooks/useUpdateCourse.ts
 import { CourseForm } from '../../features/courses/ui/CourseForm/CourseForm.tsx'
 import { ModuleEditor, type EditableModule } from '../../features/courses/ui/ModuleEditor/ModuleEditor.tsx'
 import { InteractiveVideoPlayer } from '../../features/interactive-video/ui/InteractiveVideoPlayer/InteractiveVideoPlayer'
+import { CourseCertificateBlock } from '../../features/certificates/ui/CourseCertificateBlock'
+import { useCompleteLesson } from '../../features/lesson-progress/hooks/useCompleteLesson'
 import './CoursePage.scss'
 
 type ViewMode = 'view' | 'edit-course' | 'edit-structure'
@@ -33,6 +35,26 @@ const createEmptyModule = (): EditableModule => {
     order: 1,
     lessons: []
   }
+}
+
+type TextLessonCompleteButtonProps = {
+  courseId: string
+  lessonId: string
+}
+
+const TextLessonCompleteButton = ({ courseId, lessonId }: TextLessonCompleteButtonProps) => {
+  const completeLessonMutation = useCompleteLesson({ courseId, lessonId })
+
+  return (
+      <button
+          className='course-page__secondary-button'
+          type='button'
+          onClick={() => completeLessonMutation.mutate(0)}
+          disabled={completeLessonMutation.isPending}
+      >
+        {completeLessonMutation.isPending ? 'Збереження...' : 'Позначити урок завершеним'}
+      </button>
+  )
 }
 
 export const CoursePage = () => {
@@ -292,12 +314,22 @@ export const CoursePage = () => {
                             {lesson.description ? <div>{lesson.description}</div> : null}
                             {lesson.type === 'video' && lesson.videoAsset?.secureUrl ? (
                                 <InteractiveVideoPlayer
+                                    courseId={course.id}
                                     lessonId={lesson.id}
                                     videoUrl={lesson.videoAsset.secureUrl}
                                 />
                             ) : null}
                             {lesson.type === 'text' && lesson.content ? (
-                              <div className='course-page__lesson-content'>{lesson.content}</div>
+                                <div className='course-page__lesson-content'>
+                                  {lesson.content}
+
+                                  {!canEdit ? (
+                                      <TextLessonCompleteButton
+                                          courseId={course.id}
+                                          lessonId={lesson.id}
+                                      />
+                                  ) : null}
+                                </div>
                             ) : null}
                           </li>
                         ))}
@@ -353,6 +385,8 @@ export const CoursePage = () => {
               ) : null}
             </section>
           ) : null}
+
+          <CourseCertificateBlock courseId={course.id} />
 
       {canEdit && mode ==='edit-structure' ? (
             <section className='course-page__section'>

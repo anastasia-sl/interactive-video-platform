@@ -3,6 +3,8 @@ import { CourseController } from './course.controller'
 import { asyncHandler } from '../../utils/async-handler'
 import { optionalAuth, requireAuth } from '../../middlewares/auth.middleware'
 import { requireRole } from '../rbac/roles.middleware'
+import { CertificatesController } from '../certificates/certificates.controller'
+
 
 export const coursesRouter = Router()
 
@@ -14,6 +16,19 @@ coursesRouter.post(
   requireRole('teacher', 'admin'),
   asyncHandler(CourseController.createCourse)
 )
+
+coursesRouter.get(
+    '/:courseId/certificate/eligibility',
+    requireAuth,
+    asyncHandler(CertificatesController.getEligibility)
+)
+
+coursesRouter.post(
+    '/:courseId/certificate',
+    requireAuth,
+    asyncHandler(CertificatesController.issue)
+)
+
 coursesRouter.patch(
   '/:id',
   requireAuth,

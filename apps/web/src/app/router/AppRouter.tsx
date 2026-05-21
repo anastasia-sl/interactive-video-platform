@@ -9,6 +9,7 @@ import { MyCoursesPage } from '../../pages/MyCoursesPage/MyCoursesPage'
 import { CreateCoursePage } from '../../pages/CreateCoursePage/CreateCoursePage'
 import { RequireAuth } from '../../features/auth-guard/RequireAuth'
 import { AppLayout } from '../../shared/ui/AppLayout/AppLayout'
+import { CertificatesPage } from '../../pages/CertificatesPage/CertificatesPage'
 
 export const AppRouter = () => {
   return (
@@ -24,6 +25,7 @@ export const AppRouter = () => {
           <Route path="/me" element={<MePage />} />
           <Route path='/my-courses' element={<MyCoursesPage />} />
           <Route path="/courses/create" element={<CreateCoursePage />} />
+          <Route path="/certificates" element={<CertificatesPage />} />
         </Route>
         </Route>
       </Routes>

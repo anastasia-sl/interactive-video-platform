@@ -46,6 +46,10 @@ export const AppNavigation = ({
                                 Мій профіль
                             </NavLink>
 
+                            <NavLink to="/certificates" className={getLinkClassName}>
+                                Мої сертифікати
+                            </NavLink>
+
                             {showMyCourses && canManageCourses ? (
                                 <NavLink to="/my-courses" className={getLinkClassName}>
                                     Мої курси
