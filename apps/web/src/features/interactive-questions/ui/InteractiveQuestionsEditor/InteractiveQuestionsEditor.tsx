@@ -13,6 +13,7 @@ import {
 } from '../../hooks/useInteractiveQuestions'
 import { InteractiveQuestionForm } from '../InteractiveQuestionForm/InteractiveQuestionForm'
 import { InteractiveQuestionList } from '../InteractiveQuestionList/InteractiveQuestionList'
+import './InteractiveQuestionsEditor.scss'
 
 type InteractiveQuestionsEditorProps = {
     lessonId: string

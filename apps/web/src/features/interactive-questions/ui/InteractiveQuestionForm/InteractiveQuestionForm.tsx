@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import './InteractiveQuestionForm.scss'
 import type {
     CreateQuestionDto,
     InteractiveQuestionType,
@@ -272,7 +273,7 @@ export const InteractiveQuestionForm = ({
                 />
             </label>
 
-            <button type="button" onClick={useCurrentVideoTime}>
+            <button className="interactive-question-form__time-button" type="button" onClick={useCurrentVideoTime}>
                 Використати поточний час відео
             </button>
 
@@ -317,7 +318,7 @@ export const InteractiveQuestionForm = ({
                 />
             </label>
 
-            <div>
+            <div className="interactive-question-form__options">
                 <strong>Варіанти відповіді</strong>
 
                 {values.options.map((option) => (
@@ -336,6 +337,7 @@ export const InteractiveQuestionForm = ({
                         />
 
                         <button
+                            className="interactive-question-form__remove-button"
                             type="button"
                             onClick={() => removeOption(option.id)}
                             disabled={values.options.length <= 2}
@@ -345,7 +347,7 @@ export const InteractiveQuestionForm = ({
                     </div>
                 ))}
 
-                <button type="button" onClick={addOption}>
+                <button className="interactive-question-form__add-button" type="button" onClick={addOption}>
                     Додати варіант
                 </button>
             </div>
@@ -365,7 +367,7 @@ export const InteractiveQuestionForm = ({
                 />
             </label>
 
-            <label>
+            <label className="interactive-question-form__required">
                 <input
                     type="checkbox"
                     checked={values.isRequired}
@@ -393,14 +395,14 @@ export const InteractiveQuestionForm = ({
             </label>
 
             {validationErrors.length > 0 && (
-                <div>
+                <div className="interactive-question-form__errors">
                     {validationErrors.map((error) => (
                         <p key={error}>{error}</p>
                     ))}
                 </div>
             )}
 
-            <div>
+            <div className="interactive-question-form__actions">
                 <button
                     type="button"
                     onClick={submitForm}
@@ -410,7 +412,7 @@ export const InteractiveQuestionForm = ({
                 </button>
 
                 {onCancel && (
-                    <button type="button" onClick={onCancel}>
+                    <button className="interactive-question-form__cancel-button" type="button" onClick={onCancel}>
                         Скасувати
                     </button>
                 )}
