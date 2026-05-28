@@ -1,4 +1,5 @@
 import type { TeacherQuestionDto } from '@interactive-video-platform/shared'
+import './InteractiveQuestionList.scss'
 
 type InteractiveQuestionListProps = {
     questions: TeacherQuestionDto[]

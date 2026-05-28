@@ -1,0 +1,208 @@
+.interactive-question-form {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: 28px;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    background: #f9fafb;
+
+    h4 {
+        margin: 0 0 8px;
+        color: #111827;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    label {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        color: #374151;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    input,
+    select,
+    textarea {
+        width: 100%;
+        max-width: 520px;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: #ffffff;
+        color: #111827;
+        font-size: 15px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+
+        &:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.14);
+        }
+
+        &:disabled {
+            background: #f3f4f6;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+    }
+
+    textarea {
+        min-height: 96px;
+        resize: vertical;
+    }
+
+    input[type='checkbox'],
+    input[type='radio'] {
+        width: 18px;
+        height: 18px;
+        max-width: none;
+        accent-color: #6366f1;
+    }
+
+    button {
+        width: fit-content;
+        border: none;
+        border-radius: 12px;
+        padding: 11px 18px;
+        background: #4f46e5;
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+
+        &:hover:not(:disabled) {
+            background: #4338ca;
+            transform: translateY(-1px);
+        }
+
+        &:disabled {
+            background: #d1d5db;
+            color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+    }
+
+    &__time-button {
+        align-self: flex-start;
+        background: #eef2ff;
+        color: #4338ca;
+
+        &:hover:not(:disabled) {
+            background: #e0e7ff;
+        }
+    }
+
+    &__options {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+
+        strong {
+            color: #111827;
+            font-size: 16px;
+            font-weight: 700;
+        }
+    }
+
+    &__option {
+        display: grid;
+        grid-template-columns: 24px minmax(180px, 420px) auto;
+        align-items: center;
+        gap: 12px;
+    }
+
+    &__remove-button {
+        background: transparent;
+        color: #dc2626;
+        padding: 10px 12px;
+
+        &:hover:not(:disabled) {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+    }
+
+    &__add-button {
+        margin-top: 4px;
+        background: #ffffff;
+        color: #4f46e5;
+        border: 1px solid #c7d2fe;
+
+        &:hover:not(:disabled) {
+            background: #eef2ff;
+        }
+    }
+
+    &__required {
+        flex-direction: row;
+        align-items: center;
+        width: fit-content;
+    }
+
+    &__errors {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 14px 16px;
+        border: 1px solid #fecaca;
+        border-radius: 14px;
+        background: #fef2f2;
+
+        p {
+            margin: 0;
+            color: #b91c1c;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    }
+
+    &__actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+    }
+
+    &__cancel-button {
+        background: #e5e7eb;
+        color: #374151;
+
+        &:hover:not(:disabled) {
+            background: #d1d5db;
+        }
+    }
+
+    @media (max-width: 768px) {
+        padding: 18px;
+
+        input,
+        select,
+        textarea {
+            max-width: 100%;
+        }
+
+        &__option {
+            grid-template-columns: 24px 1fr;
+        }
+
+        &__remove-button {
+            grid-column: 2;
+            width: fit-content;
+        }
+
+        &__actions {
+            flex-direction: column;
+        }
+
+        button {
+            width: 100%;
+        }
+    }
+}
